@@ -1,15 +1,35 @@
 // Unified API layer for MyChat4 — chat + document agent in one app.
 // No API keys live here. Everything goes through our secure backend.
+// Conversation/history endpoints require a logged-in user, so we
+// attach the current Supabase session token to every request that
+// needs it.
+
+import { supabase } from "./supabaseClient";
 
 const BACKEND_URL = "https://mychat4-backend.onrender.com";
 
 /**
- * Sends a chat message (with optional document context baked into
- * the history) and returns the AI's reply plus which provider answered.
+ * Returns headers with the current user's auth token attached, if
+ * they're logged in. Chat/document endpoints work without a token too
+ * (anonymous/incognito use), but history endpoints require one — the
+ * backend will reject those with 401 if missing.
+ */
+async function authHeaders(extra = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers = { ...extra };
+  if (session?.access_token) {
+    headers["Authorization"] = `Bearer ${session.access_token}`;
+  }
+  return headers;
+}
+
+/**
+ * Sends a chat message and returns the AI's reply plus which provider
+ * answered. Works whether or not the user is logged in.
  */
 export async function sendMessage(history, newMessage) {
   const formattedHistory = history
-    .filter((m) => m.type !== "doc-card") // don't send UI-only doc cards as chat turns
+    .filter((m) => m.type !== "doc-card")
     .map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
@@ -17,7 +37,7 @@ export async function sendMessage(history, newMessage) {
 
   const res = await fetch(`${BACKEND_URL}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ history: formattedHistory, message: newMessage }),
   });
 
@@ -26,8 +46,7 @@ export async function sendMessage(history, newMessage) {
     throw new Error(`Backend error ${res.status}: ${errText}`);
   }
 
-  const data = await res.json();
-  return data; // { reply, provider }
+  return res.json(); // { reply, provider }
 }
 
 /**
@@ -39,6 +58,7 @@ export async function uploadDocument(file) {
 
   const res = await fetch(`${BACKEND_URL}/upload`, {
     method: "POST",
+    headers: await authHeaders(),
     body: formData,
   });
 
@@ -51,20 +71,13 @@ export async function uploadDocument(file) {
 }
 
 /**
- * Runs a specific task (summarise, extract points, custom question, etc.)
- * against previously uploaded document text. Pass priorContext (the AI's
- * own previous answer on this document) to avoid resending the full
- * document text on repeat actions — this cuts tokens significantly.
+ * Runs a specific task against previously uploaded document text.
  */
 export async function runAgentTask(docText, task, priorContext = null) {
   const res = await fetch(`${BACKEND_URL}/agent`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      doc_text: docText,
-      task,
-      prior_context: priorContext,
-    }),
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ doc_text: docText, task, prior_context: priorContext }),
   });
 
   if (!res.ok) {
@@ -76,52 +89,72 @@ export async function runAgentTask(docText, task, priorContext = null) {
 }
 
 // ---------------------------------------------------------------
-// Conversation history
+// Conversation history — all require login
 // ---------------------------------------------------------------
 export async function createConversation(title = "New chat") {
   const res = await fetch(`${BACKEND_URL}/conversations`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ title }),
   });
-  if (!res.ok) throw new Error(`Could not create conversation: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not create conversation: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function listConversations() {
-  const res = await fetch(`${BACKEND_URL}/conversations`);
-  if (!res.ok) throw new Error(`Could not list conversations: ${res.status}`);
+  const res = await fetch(`${BACKEND_URL}/conversations`, {
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not list conversations: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function getConversationMessages(conversationId) {
-  const res = await fetch(`${BACKEND_URL}/conversations/${conversationId}/messages`);
-  if (!res.ok) throw new Error(`Could not fetch messages: ${res.status}`);
+  const res = await fetch(`${BACKEND_URL}/conversations/${conversationId}/messages`, {
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not fetch messages: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function updateConversation(conversationId, updates) {
   const res = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(updates),
   });
-  if (!res.ok) throw new Error(`Could not update conversation: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not update conversation: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function deleteConversation(conversationId) {
   const res = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
     method: "DELETE",
+    headers: await authHeaders(),
   });
-  if (!res.ok) throw new Error(`Could not delete conversation: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not delete conversation: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function saveMessage(conversationId, role, content, isPinnedRef = false) {
   const res = await fetch(`${BACKEND_URL}/messages`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       conversation_id: conversationId,
       role,
@@ -129,22 +162,29 @@ export async function saveMessage(conversationId, role, content, isPinnedRef = f
       is_pinned_ref: isPinnedRef,
     }),
   });
-  if (!res.ok) throw new Error(`Could not save message: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not save message: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function togglePinMessage(messageId) {
   const res = await fetch(`${BACKEND_URL}/messages/${messageId}/pin`, {
     method: "PATCH",
+    headers: await authHeaders(),
   });
-  if (!res.ok) throw new Error(`Could not toggle pin: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not toggle pin: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 
 export async function createBoxedConversation(title, sourceConversationIds) {
   const res = await fetch(`${BACKEND_URL}/conversations/box`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ title, source_conversation_ids: sourceConversationIds }),
   });
   if (!res.ok) {
@@ -155,10 +195,61 @@ export async function createBoxedConversation(title, sourceConversationIds) {
 }
 
 // ---------------------------------------------------------------
-// Rate limits
+// Rate limits — public, no auth needed
 // ---------------------------------------------------------------
 export async function getRateLimits() {
   const res = await fetch(`${BACKEND_URL}/rate-limits`);
   if (!res.ok) throw new Error(`Could not fetch rate limits: ${res.status}`);
+  return res.json();
+}
+
+// ---------------------------------------------------------------
+// Account management
+// ---------------------------------------------------------------
+export async function getAccountSummary() {
+  const res = await fetch(`${BACKEND_URL}/account/summary`, {
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not fetch account summary: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+export async function resetAccountData() {
+  const res = await fetch(`${BACKEND_URL}/account/reset-data`, {
+    method: "POST",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not reset account data: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+export async function requestAccountDeletion() {
+  const res = await fetch(`${BACKEND_URL}/account/request-deletion`, {
+    method: "POST",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not request account deletion: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+export async function confirmAccountDeletion(token) {
+  const res = await fetch(`${BACKEND_URL}/account/confirm-deletion`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not confirm account deletion: ${res.status} ${errText}`);
+  }
   return res.json();
 }

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import AccountSection from "./AccountSection";
+import AppearanceSection from "./AppearanceSection";
 
 const BACKEND_URL = "https://mychat4-backend.onrender.com";
 
@@ -224,21 +226,9 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
             </div>
           )}
 
-          {activeSection === "appearance" && (
-            <div className="settings-body">
-              <div className="settings-placeholder">
-                Appearance settings — theme and animation controls coming soon.
-              </div>
-            </div>
-          )}
+          {activeSection === "appearance" && <AppearanceSection />}
 
-          {activeSection === "account" && (
-            <div className="settings-body">
-              <div className="settings-placeholder">
-                Account settings — coming soon.
-              </div>
-            </div>
-          )}
+          {activeSection === "account" && <AccountSection />}
 
           {activeSection === "about" && (
             <div className="settings-body">

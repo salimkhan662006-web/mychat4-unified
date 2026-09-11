@@ -10,6 +10,8 @@ import {
 import { useStreamingText } from "./useStreamingText";
 import SettingsPanel from "./SettingsPanel";
 import HistorySidebar from "./HistorySidebar";
+import { useAuth } from "./AuthContext";
+import AuthScreen from "./AuthScreen";
 
 const PRESET_TASKS = [
   { label: "Summarise", task: "Write a clear, concise summary of this document." },
@@ -22,6 +24,8 @@ let idCounter = 0;
 const nextId = () => `m-${Date.now()}-${idCounter++}`;
 
 export default function App() {
+  const { user, loading: authLoading, signOut } = useAuth();
+
   // messages: { id, role: "user"|"assistant", type: "text"|"doc-card", content, docText?, provider? }
   const [messages, setMessages] = useState([
     {
@@ -272,6 +276,21 @@ export default function App() {
     }
   }
 
+  // While Supabase checks for an existing session (e.g. on page load),
+  // show nothing rather than flashing the login screen unnecessarily.
+  if (authLoading) {
+    return (
+      <div style={{ background: "#000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#8A7570", fontSize: 13, fontFamily: "Inter, sans-serif" }}>Loading…</div>
+      </div>
+    );
+  }
+
+  // No logged-in user — show the login/signup screen instead of the app.
+  if (!user) {
+    return <AuthScreen />;
+  }
+
   return (
     <div className="app-root">
       {/* Signature glowing smoke background */}
@@ -318,6 +337,13 @@ export default function App() {
               onClick={() => { setSettingsSection("usage"); setSettingsOpen(true); }}
             >
               📊
+            </div>
+            <div
+              className="history-dot"
+              title="Account"
+              onClick={() => { setSettingsSection("account"); setSettingsOpen(true); }}
+            >
+              👤
             </div>
             <div
               className="history-dot"
@@ -512,30 +538,34 @@ export default function App() {
           position: absolute;
           border-radius: 50%;
           filter: blur(80px);
-          opacity: 0.35;
+          opacity: calc(var(--smoke-intensity, 0.35) * 1);
           mix-blend-mode: screen;
+          transition: opacity 0.4s ease;
         }
 
         .smoke-1 {
-          width: 500px; height: 500px;
+          width: calc(500px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
+          height: calc(500px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
           background: radial-gradient(circle, #FF2E2E 0%, #8B1A1A 60%, transparent 75%);
           top: -10%; left: -5%;
           animation: drift1 22s ease-in-out infinite;
         }
 
         .smoke-2 {
-          width: 600px; height: 600px;
+          width: calc(600px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
+          height: calc(600px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
           background: radial-gradient(circle, #FF4444 0%, #6B0F0F 55%, transparent 75%);
           bottom: -15%; right: -10%;
           animation: drift2 28s ease-in-out infinite;
         }
 
         .smoke-3 {
-          width: 380px; height: 380px;
+          width: calc(380px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
+          height: calc(380px * (0.7 + var(--smoke-intensity, 0.35) * 0.6));
           background: radial-gradient(circle, #FF6B6B 0%, #7A1515 60%, transparent 75%);
           top: 40%; left: 50%;
           animation: drift3 18s ease-in-out infinite;
-          opacity: 0.22;
+          opacity: calc(var(--smoke-intensity, 0.35) * 0.63);
         }
 
         @keyframes drift1 {
@@ -549,13 +579,14 @@ export default function App() {
           70% { transform: translate(40px, -30px) scale(0.95); }
         }
         @keyframes drift3 {
-          0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.22; }
-          50% { transform: translate(-50%, -40px) scale(1.3); opacity: 0.32; }
+          0%, 100% { transform: translate(-50%, 0) scale(1); }
+          50% { transform: translate(-50%, -40px) scale(1.3); }
         }
 
         .grain {
           position: fixed; inset: 0; z-index: 1; pointer-events: none;
-          opacity: 0.025;
+          opacity: var(--grain-opacity, 0.025);
+          transition: opacity 0.3s ease;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
@@ -638,6 +669,22 @@ export default function App() {
 
         .top-bar-right { display: flex; align-items: center; gap: 10px; }
 
+        .user-menu {
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 10px; border-radius: 20px;
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,46,46,0.15);
+        }
+
+        .user-email { font-size: 11px; color: #8A7570; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .logout-btn {
+          width: 20px; height: 20px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 11px; color: #8A7570; cursor: pointer; transition: all 0.15s;
+        }
+
+        .logout-btn:hover { background: rgba(255,46,46,0.15); color: #FF9E9E; }
+
         .incognito-badge {
           font-size: 11.5px; color: #C9938D; padding: 6px 12px;
           background: rgba(139, 26, 26, 0.15); border: 1px solid rgba(255,46,46,0.25);
@@ -653,7 +700,8 @@ export default function App() {
 
         .messages {
           flex: 1; overflow-y: auto; padding: 20px 32px;
-          display: flex; flex-direction: column; gap: 20px;
+          display: flex; flex-direction: column; gap: var(--message-gap, 20px);
+          transition: gap 0.25s ease;
         }
 
         .messages::-webkit-scrollbar { width: 5px; }
@@ -665,13 +713,16 @@ export default function App() {
         .msg-avatar {
           width: 30px; height: 30px; border-radius: 50%;
           background: radial-gradient(circle at 30% 30%, #FF4444, #6B0F0F 70%);
-          flex-shrink: 0; box-shadow: 0 0 12px rgba(255,46,46,0.35);
+          flex-shrink: 0;
+          box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 24px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.7));
           margin-top: 2px;
+          transition: box-shadow 0.25s ease;
         }
 
         .msg-bubble {
-          max-width: 66%; padding: 14px 18px; border-radius: 18px;
-          font-size: 14px; line-height: 1.7; position: relative;
+          max-width: 66%; padding: var(--bubble-padding, 14px 18px); border-radius: 18px;
+          font-size: var(--chat-font-size, 14px); line-height: 1.7; position: relative;
+          transition: padding 0.25s ease, font-size 0.25s ease;
         }
 
         .msg-row.ai .msg-bubble {
@@ -686,7 +737,8 @@ export default function App() {
 
         .stream-cursor {
           display: inline-block; width: 7px; height: 15px; background: #FF4444;
-          box-shadow: 0 0 8px rgba(255,46,46,0.7); margin-left: 2px;
+          box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 16px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.9));
+          margin-left: 2px;
           vertical-align: middle; animation: blink 0.9s step-start infinite;
         }
 
@@ -774,7 +826,8 @@ export default function App() {
           display: flex; align-items: flex-end; gap: 10px;
           background: rgba(255,255,255,0.03); border: 1px solid rgba(255,46,46,0.2);
           border-radius: 16px; padding: 10px 12px 10px 16px;
-          box-shadow: 0 0 30px rgba(255,46,46,0.06);
+          box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 60px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.12));
+          transition: box-shadow 0.25s ease;
         }
 
         .attach-btn, .send-btn {
@@ -791,7 +844,9 @@ export default function App() {
 
         .send-btn {
           background: linear-gradient(135deg, #FF2E2E, #8B1A1A);
-          border: none; color: #0a0202; box-shadow: 0 0 16px rgba(255,46,46,0.4);
+          border: none; color: #0a0202;
+          box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 32px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.8));
+          transition: box-shadow 0.25s ease;
         }
 
         .chat-input {
