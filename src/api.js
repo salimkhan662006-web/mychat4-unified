@@ -253,3 +253,64 @@ export async function confirmAccountDeletion(token) {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------
+// Document generation — Excel & PowerPoint
+// ---------------------------------------------------------------
+export async function planDocument(request, docType) {
+  const res = await fetch(`${BACKEND_URL}/generate/plan`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ request, doc_type: docType }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not plan document: ${res.status} ${errText}`);
+  }
+  return res.json(); // { plan, provider }
+}
+
+/**
+ * Downloads the actual file. Triggers a real browser download rather
+ * than returning the blob, since that's the whole point — a file the
+ * user can open in PowerPoint or Excel.
+ */
+export async function downloadGeneratedFile(plan, docType) {
+  const res = await fetch(`${BACKEND_URL}/generate/file`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ plan, doc_type: docType }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Could not generate file: ${res.status} ${errText}`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const ext = docType === "pptx" ? "pptx" : "xlsx";
+  const safeTitle = (plan.title || "document").replace(/[^a-z0-9]/gi, "_").slice(0, 40);
+  a.download = `${safeTitle}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ---------------------------------------------------------------
+// Web search / research
+// ---------------------------------------------------------------
+export async function runWebSearch(query, conversationId = null) {
+  const res = await fetch(`${BACKEND_URL}/search`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ query, conversation_id: conversationId }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Search failed: ${res.status} ${errText}`);
+  }
+  return res.json(); // { answer, sources, provider }
+}

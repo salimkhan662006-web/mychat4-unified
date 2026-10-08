@@ -27,7 +27,7 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
   }, [initialSection, open]);
 
   useEffect(() => {
-    if (open && activeSection === "usage" && !usage) {
+    if (open && activeSection === "usage") {
       fetchUsage();
     }
     if (open && activeSection === "limits") {
@@ -89,7 +89,18 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
             <div className="settings-content-title">
               {SETTINGS_SECTIONS.find((s) => s.id === activeSection)?.label}
             </div>
-            <div className="settings-close" onClick={onClose}>✕</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {(activeSection === "usage" || activeSection === "limits") && (
+                <div
+                  className="settings-close"
+                  onClick={activeSection === "usage" ? fetchUsage : fetchLimits}
+                  title="Refresh"
+                >
+                  ↻
+                </div>
+              )}
+              <div className="settings-close" onClick={onClose}>✕</div>
+            </div>
           </div>
 
           {activeSection === "usage" && (
