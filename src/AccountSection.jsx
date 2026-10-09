@@ -91,8 +91,23 @@ export default function AccountSection() {
             <div>
               <div className="acc-transparency-label">Your conversations & messages</div>
               <div className="acc-transparency-desc">
-                Stored so your chat history persists across devices and sessions. Never
-                used to train any AI model, never shared with anyone.
+                Stored so your chat history persists across devices and sessions. We
+                never sell your data and never use it to train our own models. To
+                write replies, the text of your messages is sent to third-party AI
+                providers — see "AI & search providers" below.
+              </div>
+            </div>
+          </div>
+          <div className="acc-transparency-row">
+            <span className="acc-transparency-icon">🤖</span>
+            <div>
+              <div className="acc-transparency-label">AI & search providers</div>
+              <div className="acc-transparency-desc">
+                To answer you, your message and recent conversation are sent to an AI
+                provider (Groq, Google Gemini, or OpenRouter), and web searches go to
+                Tavily. Each has its own privacy terms, and some free tiers may keep
+                or use data to improve their services. Don't share anything you
+                wouldn't want a third-party AI service to process.
               </div>
             </div>
           </div>
@@ -122,8 +137,9 @@ export default function AccountSection() {
             <div>
               <div className="acc-transparency-label">Incognito chats</div>
               <div className="acc-transparency-desc">
-                Never written to any database, ever — they exist only in your browser's
-                memory for that session.
+                Never written to our database — they exist only in your browser's
+                memory for that session. (The text is still sent to an AI provider to
+                get a reply, like any other chat.)
               </div>
             </div>
           </div>
@@ -159,8 +175,9 @@ export default function AccountSection() {
       <div className="acc-section danger">
         <div className="acc-section-title">Reset data</div>
         <div className="acc-danger-desc">
-          Permanently deletes all your conversations, messages, and usage history.
-          Your account and login stay intact — this just wipes the slate clean.
+          Permanently deletes all your conversations and messages, and detaches
+          your usage history from your account. Your account and login stay
+          intact — this just wipes the slate clean.
         </div>
         {resetDone ? (
           <div className="acc-success">✓ All your data has been reset.</div>
