@@ -16,6 +16,7 @@ import HistorySidebar from "./HistorySidebar";
 import { useAuth } from "./AuthContext";
 import AuthScreen from "./AuthScreen";
 import { buildCompressedSaveFile, downloadSaveFile, parseCompressedSaveFile } from "./eincm";
+import { messageFromRow } from "./messageMapping";
 import SmokeBackground from "./components/SmokeBackground";
 import HistoryRail from "./components/HistoryRail";
 import TopBar from "./components/TopBar";
@@ -152,9 +153,11 @@ export default function App() {
     return conv.id;
   }
 
-  function persistMessage(convId, role, content) {
+  // `meta` carries the rich extras (tree/chart, search sources, generated-file
+  // preview) so they are still there when this chat is reopened later.
+  function persistMessage(convId, role, content, meta = null) {
     if (isIncognito || !convId) return; // never save incognito messages
-    saveMessage(convId, role, content).catch((err) =>
+    saveMessage(convId, role, content, false, meta).catch((err) =>
       console.warn("Message save failed (non-fatal):", err.message)
     );
   }
@@ -292,14 +295,7 @@ export default function App() {
         setMessages([systemMessage("This chat is empty — say something to get started.")]);
         return;
       }
-      setMessages(
-        msgs.map((m) => ({
-          id: m.id,
-          role: m.role,
-          type: "text",
-          content: m.content,
-        }))
-      );
+      setMessages(msgs.map(messageFromRow));
     } catch (err) {
       if (seq !== loadSeqRef.current) return;
       setMessages([systemMessage("Couldn't load this chat. Please try again.")]);
@@ -334,7 +330,11 @@ export default function App() {
         structure: data.structure || null,
       });
       streamIntoMessage(msgId, data.reply);
-      persistMessage(convId, "assistant", data.reply);
+      persistMessage(convId, "assistant", data.reply, {
+        type: "text",
+        provider: data.provider,
+        ...(data.structure ? { structure: data.structure } : {}),
+      });
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -362,7 +362,11 @@ export default function App() {
         provider: data.provider,
       });
 
-      persistMessage(convId, "assistant", data.answer);
+      persistMessage(convId, "assistant", data.answer, {
+        type: "search-card",
+        sources: data.sources,
+        provider: data.provider,
+      });
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -420,7 +424,7 @@ export default function App() {
         provider: data.provider,
       });
       streamIntoMessage(msgId, data.result);
-      persistMessage(convId, "assistant", data.result);
+      persistMessage(convId, "assistant", data.result, { type: "text", provider: data.provider });
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -455,7 +459,12 @@ export default function App() {
         provider,
       });
 
-      persistMessage(convId, "assistant", `Generated ${docType.toUpperCase()} plan: ${plan.title}`);
+      persistMessage(convId, "assistant", plan.title || "Untitled", {
+        type: "doc-gen-card",
+        docType,
+        plan,
+        provider,
+      });
     } catch (err) {
       setErrorMsg(err.message);
     } finally {

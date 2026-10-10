@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AccountSection from "./AccountSection";
 import AppearanceSection from "./AppearanceSection";
 import { getUsage, getRateLimits } from "./api";
+import { BUILD_ID } from "./version";
 
 // Friendly names for each feature in the "By feature" list.
 const ENDPOINT_LABELS = {
@@ -254,7 +255,8 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
             <div className="settings-body">
               <div className="settings-placeholder">
                 MyChat4 — built by Salim.<br />
-                Powered by Groq, Gemini, and OpenRouter with automatic fallback.
+                Powered by Groq, Gemini, and OpenRouter with automatic fallback.<br />
+                <span style={{ opacity: 0.7 }}>Build: {BUILD_ID}</span>
               </div>
             </div>
           )}

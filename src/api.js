@@ -169,7 +169,7 @@ export async function deleteConversation(conversationId) {
   return res.json();
 }
 
-export async function saveMessage(conversationId, role, content, isPinnedRef = false) {
+export async function saveMessage(conversationId, role, content, isPinnedRef = false, meta = null) {
   const res = await fetch(`${BACKEND_URL}/messages`, {
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
@@ -178,6 +178,7 @@ export async function saveMessage(conversationId, role, content, isPinnedRef = f
       role,
       content,
       is_pinned_ref: isPinnedRef,
+      ...(meta ? { meta } : {}),
     }),
   });
   if (!res.ok) {

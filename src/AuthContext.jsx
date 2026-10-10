@@ -43,6 +43,11 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  async function resendConfirmation(email) {
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    if (error) throw error;
+  }
+
   async function signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -56,6 +61,7 @@ export function AuthProvider({ children }) {
     signUpWithEmail,
     signInWithEmail,
     signInWithGoogle,
+    resendConfirmation,
     signOut,
   };
 

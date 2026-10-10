@@ -1,0 +1,32 @@
+/* Attached-document card and preset chips */
+
+.doc-block { display: flex; flex-direction: column; gap: 8px; }
+
+.doc-inline-card {
+  background: rgba(255,46,46,0.05); border: 1px solid rgba(255,46,46,0.22);
+  border-radius: 14px; padding: 14px 16px; display: flex; align-items: center;
+  gap: 12px; max-width: 340px;
+}
+
+.doc-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,46,46,0.15); display: flex; align-items: center;
+  justify-content: center; font-size: 16px; flex-shrink: 0;
+}
+
+.doc-info-name { font-size: 12.5px; font-weight: 600; color: #F2E0DC; }
+
+.doc-info-meta { font-size: 10.5px; color: #8A7570; margin-top: 2px; }
+
+.preset-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.chip {
+  font-size: 11.5px; padding: 7px 14px; border-radius: 20px;
+  background: rgba(255,46,46,0.06); border: 1px solid rgba(255,46,46,0.25);
+  color: #E0A8A3; cursor: pointer; transition: all 0.2s;
+}
+
+.chip:hover {
+  background: rgba(255,46,46,0.16); color: #FFC7C4;
+  box-shadow: 0 0 10px rgba(255,46,46,0.2);
+}

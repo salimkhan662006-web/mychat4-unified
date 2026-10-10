@@ -1,31 +1,76 @@
 import { useState } from "react";
 import { useAuth } from "./AuthContext";
 
+// Turns Supabase's raw error text into something a person can act on.
+function friendlyAuthError(raw) {
+  const text = String(raw || "");
+  if (/email not confirmed/i.test(text)) {
+    return {
+      message: "Your email isn't confirmed yet. Open the confirmation link we emailed you (check your spam folder), or resend it below.",
+      needsConfirm: true,
+    };
+  }
+  if (/invalid login credentials/i.test(text)) {
+    return { message: "Wrong email or password.", needsConfirm: false };
+  }
+  if (/rate limit/i.test(text)) {
+    return {
+      message: "Too many emails were sent recently. Please wait a while and try again, or continue with Google.",
+      needsConfirm: false,
+    };
+  }
+  if (/already registered|already exists/i.test(text)) {
+    return { message: "An account with this email already exists. Try logging in instead.", needsConfirm: false };
+  }
+  return { message: text || "Something went wrong. Please try again.", needsConfirm: false };
+}
+
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle, resendConfirmation } = useAuth();
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [needsConfirm, setNeedsConfirm] = useState(false);
+
+  async function handleResend() {
+    setError("");
+    setMessage("");
+    try {
+      await resendConfirmation(email);
+      setNeedsConfirm(false);
+      setMessage("Confirmation email sent — check your inbox and your spam folder.");
+    } catch (err) {
+      const friendly = friendlyAuthError(err.message);
+      setError(friendly.message);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setMessage("");
+    setNeedsConfirm(false);
     setLoading(true);
 
     try {
       if (mode === "signup") {
-        await signUpWithEmail(email, password);
-        setMessage("Account created! Check your email to confirm, then log in.");
-        setMode("login");
+        const data = await signUpWithEmail(email, password);
+        // If email confirmation is switched off in Supabase, signing up logs the
+        // person straight in and there is nothing to confirm.
+        if (!data?.session) {
+          setMessage("Account created! Check your email (and spam folder) for a confirmation link, then log in.");
+          setMode("login");
+        }
       } else {
         await signInWithEmail(email, password);
       }
     } catch (err) {
-      setError(err.message);
+      const friendly = friendlyAuthError(err.message);
+      setError(friendly.message);
+      setNeedsConfirm(friendly.needsConfirm);
     } finally {
       setLoading(false);
     }
@@ -99,6 +144,9 @@ export default function AuthScreen() {
           />
 
           {error && <div className="auth-error">{error}</div>}
+          {needsConfirm && email && (
+            <div className="auth-resend" onClick={handleResend}>Resend confirmation email</div>
+          )}
           {message && <div className="auth-message">{message}</div>}
 
           <button className="auth-submit" type="submit" disabled={loading}>
@@ -218,6 +266,9 @@ export default function AuthScreen() {
 
         .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
         .auth-submit:not(:disabled):hover { box-shadow: 0 0 28px rgba(255,46,46,0.45); }
+
+        .auth-resend { text-align: center; font-size: 12.5px; color: #FF6B6B; cursor: pointer; font-weight: 500; }
+        .auth-resend:hover { text-decoration: underline; }
 
         .auth-footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6B5551; }
         .auth-footer span { color: #FF6B6B; cursor: pointer; font-weight: 500; }
