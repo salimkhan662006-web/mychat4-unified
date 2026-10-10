@@ -1,0 +1,77 @@
+/* Tree diagram and bar chart */
+
+.tree-diagram {
+  background: rgba(255,46,46,0.04); border: 1px solid rgba(255,46,46,0.18);
+  border-radius: 16px; padding: 18px; width: 100%;
+}
+
+.tree-root {
+  font-size: 13.5px; font-weight: 700; color: #FFB3B0;
+  background: rgba(255,46,46,0.18); border: 1px solid rgba(255,46,46,0.4);
+  border-radius: 10px; padding: 10px 16px; text-align: center;
+  margin-bottom: 16px; position: relative;
+}
+
+.tree-root::after {
+  content: ''; position: absolute; bottom: -16px; left: 50%;
+  width: 1px; height: 16px; background: rgba(255,46,46,0.35);
+}
+
+.tree-branches {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+}
+
+.tree-branch {
+  flex: 1; min-width: 140px; background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,46,46,0.15); border-radius: 12px; padding: 12px;
+  position: relative;
+}
+
+.tree-branch::before {
+  content: ''; position: absolute; top: -12px; left: 50%;
+  width: 1px; height: 12px; background: rgba(255,46,46,0.3);
+}
+
+.tree-branch-label {
+  font-size: 12px; font-weight: 600; color: #E0A8A3; margin-bottom: 8px;
+}
+
+.tree-children { display: flex; flex-direction: column; gap: 5px; }
+
+.tree-child {
+  font-size: 11px; color: #9A8580; padding-left: 10px;
+  border-left: 2px solid rgba(255,46,46,0.2);
+}
+
+.bar-chart {
+  background: rgba(255,46,46,0.04); border: 1px solid rgba(255,46,46,0.18);
+  border-radius: 16px; padding: 18px; width: 100%;
+}
+
+.bar-chart-title {
+  font-size: 12.5px; font-weight: 600; color: #FFB3B0; margin-bottom: 14px;
+}
+
+.bar-chart-bars { display: flex; flex-direction: column; gap: 10px; }
+
+.bar-chart-row { display: flex; align-items: center; gap: 10px; }
+
+.bar-chart-label {
+  width: 90px; flex-shrink: 0; font-size: 11.5px; color: #C9B8B4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.bar-chart-track {
+  flex: 1; height: 16px; background: rgba(0,0,0,0.3);
+  border-radius: 8px; overflow: hidden;
+}
+
+.bar-chart-fill {
+  height: 100%; background: linear-gradient(90deg, #8B1A1A, #FF2E2E);
+  border-radius: 8px; transition: width 0.6s ease;
+}
+
+.bar-chart-value {
+  width: 44px; flex-shrink: 0; font-size: 11px; color: #8A7570;
+  text-align: right; font-family: monospace;
+}

@@ -1,0 +1,57 @@
+/* Left history rail */
+
+.history-rail {
+  position: relative; width: 88px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 0; z-index: 3; height: 100%;
+}
+
+.history-curve {
+  position: absolute; top: 0; left: -180px; width: 268px; height: 100%;
+  background: linear-gradient(135deg, rgba(20,8,8,0.95), rgba(10,4,4,0.98));
+  border-radius: 0 140px 140px 0;
+  border: 1px solid rgba(255,46,46,0.15);
+  border-left: none;
+  box-shadow: 20px 0 60px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,46,46,0.08);
+}
+
+.history-logo {
+  position: relative; width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #FF4444, #8B1A1A 70%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px;
+  color: #0a0202;
+  box-shadow: 0 0 24px rgba(255,46,46,0.5), 0 0 4px rgba(255,46,46,0.8);
+  margin-bottom: 32px; cursor: pointer;
+}
+
+.history-items { position: relative; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+
+.history-rail-bottom {
+  position: relative; margin-top: auto; display: flex;
+  flex-direction: column; gap: 10px; align-items: center;
+  padding-bottom: 4px;
+}
+
+.history-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,46,46,0.06);
+  border: 1px solid rgba(255,46,46,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: #B8756B; cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.history-dot:hover {
+  background: rgba(255,46,46,0.14); border-color: rgba(255,46,46,0.45);
+  color: #FF6B6B; transform: scale(1.08); box-shadow: 0 0 16px rgba(255,46,46,0.25);
+}
+
+.history-dot.active {
+  background: rgba(255,46,46,0.22); border-color: #FF2E2E;
+  color: #FFAFAF; box-shadow: 0 0 20px rgba(255,46,46,0.4);
+}
+
+.history-dot.incognito {
+  background: rgba(139, 26, 26, 0.3); border-color: #8B1A1A;
+}
