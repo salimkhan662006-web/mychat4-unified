@@ -123,6 +123,17 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
+            <span className="acc-transparency-icon">🔢</span>
+            <div>
+              <div className="acc-transparency-label">Daily request counter</div>
+              <div className="acc-transparency-desc">
+                A single number per day — how many requests you made — is kept so the
+                free daily limit can't be dodged by resetting your data. It contains no
+                message content and is deleted with your account.
+              </div>
+            </div>
+          </div>
+          <div className="acc-transparency-row">
             <span className="acc-transparency-icon">🔑</span>
             <div>
               <div className="acc-transparency-label">Login identity</div>

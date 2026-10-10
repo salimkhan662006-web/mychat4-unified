@@ -44,8 +44,10 @@ async function readErrorDetail(res) {
  * answered. Works whether or not the user is logged in.
  */
 export async function sendMessage(history, newMessage) {
+  // Only real conversation turns go to the AI: skip document cards, generated-file
+  // cards, and the app's own greeting/status messages (isGreeting).
   const formattedHistory = history
-    .filter((m) => m.type !== "doc-card")
+    .filter((m) => (m.type === "text" || m.type === "search-card") && !m.isGreeting)
     .map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
