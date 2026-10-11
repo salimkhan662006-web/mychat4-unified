@@ -19,7 +19,7 @@ import {
   loadAllSessions,
   queueSave,
   removeSession,
-} from "./Vault";
+} from "./vault.js";
 
 export function useVault(userId) {
   const [status, setStatus] = useState("checking");
