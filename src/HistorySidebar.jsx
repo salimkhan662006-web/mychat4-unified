@@ -5,6 +5,7 @@ import {
   deleteConversation,
   createBoxedConversation,
 } from "./api";
+import VaultStrip from "./components/VaultStrip";
 
 export default function HistorySidebar({
   open,
@@ -15,6 +16,11 @@ export default function HistorySidebar({
   onStartIncognito,
   incognitoSessions,
   onBoxCreated,
+  vaultStatus,
+  onVaultSetup,
+  onVaultUnlock,
+  onVaultLock,
+  onVaultErase,
 }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -128,9 +134,19 @@ export default function HistorySidebar({
         {error && <div className="hs-error">{error}</div>}
 
         <div className="hs-list">
+          <VaultStrip
+            status={vaultStatus}
+            onSetup={onVaultSetup}
+            onUnlock={onVaultUnlock}
+            onLock={onVaultLock}
+            onErase={onVaultErase}
+          />
+
           {incognitoSessions.length > 0 && (
             <>
-              <div className="hs-section-label">Incognito (this session only)</div>
+              <div className="hs-section-label">
+                {vaultStatus === "unlocked" ? "Incognito (vault unlocked)" : "Incognito (this session only)"}
+              </div>
               {incognitoSessions.map((s) => (
                 <div
                   key={s.id}
@@ -139,7 +155,7 @@ export default function HistorySidebar({
                 >
                   <span className="hs-item-icon">🕶</span>
                   <span className="hs-item-title">{s.title}</span>
-                  <span className="hs-item-badge">Incognito</span>
+                  <span className="hs-item-badge">{s.vaulted ? "Vault" : "Incognito"}</span>
                 </div>
               ))}
             </>

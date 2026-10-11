@@ -24,6 +24,8 @@ import MessageList from "./components/MessageList";
 import ChatInput from "./components/ChatInput";
 import PreviewModal from "./components/PreviewModal";
 import EincmDialog from "./components/EincmDialog";
+import VaultDialog from "./components/VaultDialog";
+import { useVault } from "./useVault";
 
 let idCounter = 0;
 const nextId = () => `m-${Date.now()}-${idCounter++}`;
@@ -46,6 +48,8 @@ function greetingFor(user, text) {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth();
+  // Encrypted Incognito Vault (on-device only). Locks itself when the account changes.
+  const vault = useVault(user?.id);
 
   // messages: { id, role: "user"|"assistant", type: "text"|"doc-card"|"search-card"|"doc-gen-card", content, ... }
   const [messages, setMessages] = useState(() => [
@@ -65,7 +69,7 @@ export default function App() {
   // Conversation persistence
   const [conversationId, setConversationId] = useState(null);
   const [isIncognito, setIsIncognito] = useState(false);
-  const [incognitoSessions, setIncognitoSessions] = useState([]); // in-memory only: [{ id, title }]
+  const [incognitoSessions, setIncognitoSessions] = useState([]); // [{ id, title, vaulted }] — vaulted ones are also kept encrypted on this device
   const [eincmDialogOpen, setEincmDialogOpen] = useState(false);
   const [eincmImportError, setEincmImportError] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -87,11 +91,36 @@ export default function App() {
   const loadSeqRef = useRef(0);
 
   // Keep the active incognito session's messages mirrored into the in-memory store.
+  // If the vault is unlocked and this session belongs to it, also queue an
+  // encrypted, debounced save to THIS DEVICE's vault (never the server).
   useEffect(() => {
     if (isIncognito && conversationId) {
       incognitoStoreRef.current[conversationId] = messages;
+
+      if (vault.isUnlocked) {
+        const session = incognitoSessions.find((s) => s.id === conversationId);
+        if (session?.vaulted) {
+          vault.saveSession({ id: session.id, title: session.title, messages });
+        }
+      }
     }
-  }, [messages, isIncognito, conversationId]);
+  }, [messages, isIncognito, conversationId, incognitoSessions, vault.isUnlocked]);
+
+  // After a successful unlock, bring the vault's chats back into the sidebar.
+  useEffect(() => {
+    const restored = vault.restoredSessions;
+    if (!restored.length) return;
+    restored.forEach((s) => {
+      incognitoStoreRef.current[s.id] = s.messages;
+    });
+    setIncognitoSessions((prev) => {
+      const have = new Set(prev.map((p) => p.id));
+      const extra = restored
+        .filter((s) => !have.has(s.id))
+        .map((s) => ({ id: s.id, title: s.title, vaulted: true }));
+      return extra.length ? [...prev, ...extra] : prev;
+    });
+  }, [vault.restoredSessions]);
 
   // PRIVACY: when the logged-in person changes (logout, or someone else logs in),
   // wipe everything the previous person had on screen — messages, incognito chats,
@@ -186,7 +215,9 @@ export default function App() {
     const sessionId = `incognito-${nextId()}`;
     setMessages([
       systemMessage(
-        "Enhanced Incognito — this chat stays here in the app for your whole session, but it's never saved to any server. When you're done, you can delete it for good or compress it into a file you keep yourself."
+        vault.isUnlocked
+          ? "Enhanced Incognito — your vault is unlocked, so this chat is also saved, encrypted, on this device (never on any server). Lock the vault and it disappears from the screen until you unlock it again."
+          : "Enhanced Incognito — this chat stays here in the app for your whole session, but it's never saved to any server. When you're done, you can delete it for good or compress it into a file you keep yourself."
       ),
     ]);
     setConversationId(sessionId);
@@ -194,12 +225,15 @@ export default function App() {
     clearActiveDoc();
     setIncognitoSessions((prev) => [
       ...prev,
-      { id: sessionId, title: `Incognito chat ${prev.length + 1}` },
+      { id: sessionId, title: `Incognito chat ${prev.length + 1}`, vaulted: vault.isUnlocked },
     ]);
     setHistoryOpen(false);
   }
 
   function forgetIncognitoSession(sessionId) {
+    // Standard Delete (and "saved to a file") also removes it from the vault.
+    const session = incognitoSessions.find((s) => s.id === sessionId);
+    if (session?.vaulted) vault.deleteSession(sessionId);
     delete incognitoStoreRef.current[sessionId];
     setIncognitoSessions((prev) => prev.filter((s) => s.id !== sessionId));
   }
@@ -230,6 +264,33 @@ export default function App() {
     }
   }
 
+  // Vault chats leave the screen when the vault locks or is erased.
+  function clearVaultedFromScreen() {
+    const active = incognitoSessions.find((s) => s.id === conversationId);
+    incognitoSessions
+      .filter((s) => s.vaulted)
+      .forEach((s) => delete incognitoStoreRef.current[s.id]);
+    setIncognitoSessions((prev) => prev.filter((s) => !s.vaulted));
+
+    if (active?.vaulted) {
+      loadSeqRef.current += 1;
+      setMessages([greetingFor(user, "ready when you are. Ask me anything, or attach a document.")]);
+      setConversationId(null);
+      setIsIncognito(false);
+      clearActiveDoc();
+    }
+  }
+
+  async function handleVaultLock() {
+    await vault.lock(); // flushes the last pending save, then drops the key
+    clearVaultedFromScreen();
+  }
+
+  async function handleVaultErase() {
+    await vault.erase(); // errors bubble up to the dialog
+    clearVaultedFromScreen();
+  }
+
   async function handleImportFile(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -257,7 +318,10 @@ export default function App() {
       setConversationId(sessionId);
       setIsIncognito(true);
       clearActiveDoc();
-      setIncognitoSessions((prev) => [...prev, { id: sessionId, title: restored.title }]);
+      setIncognitoSessions((prev) => [
+        ...prev,
+        { id: sessionId, title: restored.title, vaulted: vault.isUnlocked },
+      ]);
       setHistoryOpen(false);
     } catch (err) {
       setEincmImportError(err.message);
@@ -581,7 +645,22 @@ export default function App() {
         onStartIncognito={startIncognitoChat}
         incognitoSessions={incognitoSessions}
         onBoxCreated={(conv) => loadConversation(conv.id, false)}
+        vaultStatus={vault.status}
+        onVaultSetup={() => vault.openDialog("setup")}
+        onVaultUnlock={() => vault.openDialog("unlock")}
+        onVaultLock={handleVaultLock}
+        onVaultErase={() => vault.openDialog("erase")}
       />
+
+      {vault.dialogMode && (
+        <VaultDialog
+          mode={vault.dialogMode}
+          onSetup={vault.setup}
+          onUnlock={vault.unlock}
+          onErase={handleVaultErase}
+          onClose={vault.closeDialog}
+        />
+      )}
 
       {eincmDialogOpen && (
         <EincmDialog
