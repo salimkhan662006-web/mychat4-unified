@@ -143,6 +143,19 @@ export default function AccountSection() {
               </div>
             </div>
           </div>
+                    <div className="acc-transparency-row">
+            <span className="acc-transparency-icon">📦</span>
+            <div>
+              <div className="acc-transparency-label">Boxes (instructions & notes)</div>
+              <div className="acc-transparency-desc">
+                Standing instructions and short notes you write in a box, stored so they follow
+                you across devices. When you attach a box to a chat, its text is sent to the AI
+                provider along with your messages, like any other message. Obvious secrets (keys,
+                passwords, card, ID or phone numbers, emails) are blocked before saving. Incognito
+                chats never use a box. Boxes are deleted by Reset data and Delete account.
+              </div>
+            </div>
+          </div>
           <div className="acc-transparency-row">
             <span className="acc-transparency-icon">🚫</span>
             <div>
@@ -186,7 +199,7 @@ export default function AccountSection() {
       <div className="acc-section danger">
         <div className="acc-section-title">Reset data</div>
         <div className="acc-danger-desc">
-          Permanently deletes all your conversations and messages, and detaches
+          Permanently deletes all your conversations, messages, boxes and notes, and detaches
           your usage history from your account. Your account and login stay
           intact — this just wipes the slate clean.
         </div>

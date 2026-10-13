@@ -43,7 +43,7 @@ async function readErrorDetail(res) {
  * Sends a chat message and returns the AI's reply plus which provider
  * answered. Works whether or not the user is logged in.
  */
-export async function sendMessage(history, newMessage) {
+export async function sendMessage(history, newMessage, boxId = null) {
   // Only real conversation turns go to the AI: skip document cards, generated-file
   // cards, and the app's own greeting/status messages (isGreeting).
   const formattedHistory = history
@@ -56,7 +56,11 @@ export async function sendMessage(history, newMessage) {
   const res = await fetch(`${BACKEND_URL}/chat`, {
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ history: formattedHistory, message: newMessage }),
+        body: JSON.stringify({
+      history: formattedHistory,
+      message: newMessage,
+      ...(boxId ? { box_id: boxId } : {}),
+    }),
   });
 
   if (!res.ok) {
@@ -109,11 +113,11 @@ export async function runAgentTask(docText, task, priorContext = null) {
 // ---------------------------------------------------------------
 // Conversation history — all require login
 // ---------------------------------------------------------------
-export async function createConversation(title = "New chat") {
+export async function createConversation(title = "New chat", boxId = null){
   const res = await fetch(`${BACKEND_URL}/conversations`, {
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, ...(boxId ? { box_id: boxId } : {}) }),
   });
   if (!res.ok) {
     const errText = await readErrorDetail(res);
@@ -349,3 +353,33 @@ export async function runWebSearch(query, conversationId = null) {
   }
   return res.json(); // { answer, sources, provider }
 }
+// ---------------------------------------------------------------
+// Boxes (instructions + notes) — all require login
+// ---------------------------------------------------------------
+async function boxRequest(method, path, body, errLabel) {
+  const res = await fetch(`${BACKEND_URL}${path}`, {
+    method,
+    headers: await authHeaders(body ? { "Content-Type": "application/json" } : {}),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const errText = await readErrorDetail(res);
+    throw new Error(`${errLabel}: ${errText}`);
+  }
+  return res.json();
+}
+
+export const listBoxes = () => boxRequest("GET", "/boxes", null, "Could not load boxes");
+export const createBox = (title, instructions = "") =>
+  boxRequest("POST", "/boxes", { title, instructions }, "Could not create box");
+export const getBox = (boxId) => boxRequest("GET", `/boxes/${boxId}`, null, "Could not load box");
+export const updateBox = (boxId, updates) =>
+  boxRequest("PATCH", `/boxes/${boxId}`, updates, "Could not save box");
+export const deleteBox = (boxId) =>
+  boxRequest("DELETE", `/boxes/${boxId}`, null, "Could not delete box");
+export const addBoxNote = (boxId, content) =>
+  boxRequest("POST", `/boxes/${boxId}/notes`, { content }, "Could not add note");
+export const updateBoxNote = (boxId, noteId, content) =>
+  boxRequest("PATCH", `/boxes/${boxId}/notes/${noteId}`, { content }, "Could not save note");
+export const deleteBoxNote = (boxId, noteId) =>
+  boxRequest("DELETE", `/boxes/${boxId}/notes/${noteId}`, null, "Could not delete note");

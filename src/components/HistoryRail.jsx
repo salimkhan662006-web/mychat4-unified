@@ -1,5 +1,5 @@
 // The semi-circular rail on the left: history, new chat, incognito, import,
-// and the usage / account / settings shortcuts.
+// boxes, and the usage / account / settings shortcuts.
 
 export default function HistoryRail({
   isIncognito,
@@ -9,6 +9,7 @@ export default function HistoryRail({
   onStartIncognito,
   onImportFile,
   onOpenSettings,
+  onOpenBoxes,
 }) {
   return (
     <div className="history-rail">
@@ -30,6 +31,7 @@ export default function HistoryRail({
         >
           🕶
         </div>
+        <div className="history-dot" title="Boxes" onClick={onOpenBoxes}>📦</div>
         <label className="history-dot" title="Import a saved .mchat file">
           📥
           <input

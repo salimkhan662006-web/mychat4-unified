@@ -117,19 +117,7 @@ export default function HistorySidebar({
           </div>
         </div>
 
-        <div className="hs-box-toggle">
-          <div
-            className={`hs-action-btn ${boxMode ? "active" : "ghost"}`}
-            onClick={() => { setBoxMode(!boxMode); setBoxSelection([]); }}
-          >
-            📦 {boxMode ? "Cancel box selection" : "Combine chats into a box"}
-          </div>
-          {boxMode && boxSelection.length >= 2 && (
-            <div className="hs-action-btn primary small" onClick={handleCreateBox}>
-              {creatingBox ? "Creating…" : `Create box (${boxSelection.length})`}
-            </div>
-          )}
-        </div>
+        
 
         {error && <div className="hs-error">{error}</div>}
 
@@ -191,7 +179,7 @@ export default function HistorySidebar({
                   active={activeConversationId === c.id}
                   boxMode={boxMode}
                   selected={boxSelection.includes(c.id)}
-                  onSelect={() => (boxMode ? toggleBoxSelection(c.id) : onSelectConversation(c.id, false))}
+                  onSelect={() => (boxMode ? toggleBoxSelection(c.id) : onSelectConversation(c.id, false, c.box_id || null))}
                   onTogglePin={(e) => handleTogglePin(e, c)}
                   onDelete={(e) => handleDelete(e, c)}
                 />

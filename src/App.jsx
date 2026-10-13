@@ -9,6 +9,7 @@ import {
   planDocument,
   downloadGeneratedFile,
   runWebSearch,
+  updateConversation,
 } from "./api";
 import { useStreamingText } from "./useStreamingText";
 import SettingsPanel from "./SettingsPanel";
@@ -24,6 +25,7 @@ import MessageList from "./components/MessageList";
 import ChatInput from "./components/ChatInput";
 import PreviewModal from "./components/PreviewModal";
 import EincmDialog from "./components/EincmDialog";
+import BoxPanel from "./components/BoxPanel";
 import VaultDialog from "./components/VaultDialog";
 import { useVault } from "./useVault";
 
@@ -77,7 +79,10 @@ export default function App() {
   const [searchMode, setSearchMode] = useState(false);
   const [searching, setSearching] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-
+  const [boxPanelOpen, setBoxPanelOpen] = useState(false);
+  const [activeBoxId, setActiveBoxId] = useState(null); // box attached to the current chat
+  // Incognito chats never use a box, whatever is selected.
+  const effectiveBoxId = isIncognito ? null : activeBoxId;
   const importFileRef = useRef(null);
   const fileInputRef = useRef(null);
   const { displayed, stream } = useStreamingText();
@@ -128,7 +133,8 @@ export default function App() {
   useEffect(() => {
     loadSeqRef.current += 1;
     incognitoStoreRef.current = {};
-    setMessages([greetingFor(user, "I'm ready when you are. Ask me anything, or attach a document and I'll read it for you.")]);
+    setMessages([greetingFor(user, "ready when you are. Ask me anything, or attach a document.")]);
+    setActiveBoxId(null);
     setConversationId(null);
     setIsIncognito(false);
     setIncognitoSessions([]);
@@ -142,7 +148,9 @@ export default function App() {
     setEincmDialogOpen(false);
     setSettingsOpen(false);
     setHistoryOpen(false);
-    setStreamingMsgId(null);
+        setStreamingMsgId(null);
+    setActiveBoxId(null);
+    setBoxPanelOpen(false);
   }, [user?.id]);
 
   function pushMessage(msg) {
@@ -177,7 +185,7 @@ export default function App() {
     if (conversationId) return conversationId;
 
     const title = firstMessageText.slice(0, 48) || "New chat";
-    const conv = await createConversation(title);
+    const conv = await createConversation(title, activeBoxId);
     setConversationId(conv.id);
     return conv.id;
   }
@@ -330,10 +338,11 @@ export default function App() {
     }
   }
 
-  async function loadConversation(id, incognito) {
+  async function loadConversation(id, incognito, boxId = null) {
     setHistoryOpen(false);
-    const seq = ++loadSeqRef.current;
+       const seq = ++loadSeqRef.current;
     clearActiveDoc();
+    setActiveBoxId(incognito ? null : boxId);
 
     if (incognito) {
       // Incognito sessions live only in memory: restore this session's own
@@ -385,7 +394,7 @@ export default function App() {
       persistMessage(convId, "user", text);
 
       const history = messages;
-      const data = await withWakeDetection(sendMessage(history, text));
+      const data = await withWakeDetection(sendMessage(history, text, effectiveBoxId));
       const msgId = pushMessage({
         role: "assistant",
         type: "text",
@@ -544,7 +553,27 @@ export default function App() {
     }
   }
 
-  function handleKeyDown(e) {
+    // Attach (boxId) or detach (null) a box. If this chat already exists on the
+  // server the link is saved there; otherwise it is saved when the chat is created.
+  async function handleAttachBox(boxId) {
+    const previous = activeBoxId;
+    setActiveBoxId(boxId);
+    setErrorMsg("");
+    if (conversationId && !isIncognito) {
+      try {
+        await updateConversation(conversationId, { box_id: boxId });
+      } catch (err) {
+        setActiveBoxId(previous);
+        setErrorMsg(`Could not update this chat's box: ${err.message}`);
+      }
+    }
+  }
+
+  function handleBoxDeleted(boxId) {
+    if (activeBoxId === boxId) setActiveBoxId(null);
+  }
+
+  function handleKeyDown(e) { {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -578,13 +607,16 @@ export default function App() {
           onNewChat={startNewChat}
           onStartIncognito={startIncognitoChat}
           onImportFile={handleImportFile}
-          onOpenSettings={openSettings}
+                   onOpenSettings={openSettings}
+          onOpenBoxes={() => setBoxPanelOpen(true)}
         />
 
         <div className="main">
           <TopBar
             isIncognito={isIncognito}
-            onEndIncognito={() => setEincmDialogOpen(true)}
+                        onEndIncognito={() => setEincmDialogOpen(true)}
+            boxAttached={!!effectiveBoxId}
+            onDetachBox={() => handleAttachBox(null)}
             activeDoc={activeDoc}
             onClearDoc={clearActiveDoc}
           />
@@ -636,6 +668,15 @@ export default function App() {
         initialSection={settingsSection}
       />
 
+        <BoxPanel
+        open={boxPanelOpen}
+        onClose={() => setBoxPanelOpen(false)}
+        activeBoxId={effectiveBoxId}
+        canAttach={!isIncognito}
+        onAttach={handleAttachBox}
+        onBoxDeleted={handleBoxDeleted}
+      />
+
       <HistorySidebar
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
@@ -671,4 +712,4 @@ export default function App() {
       )}
     </div>
   );
-}
+}}
