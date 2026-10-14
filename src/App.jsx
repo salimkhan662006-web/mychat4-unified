@@ -553,7 +553,7 @@ export default function App() {
     }
   }
 
-    // Attach (boxId) or detach (null) a box. If this chat already exists on the
+  // Attach (boxId) or detach (null) a box. If this chat already exists on the
   // server the link is saved there; otherwise it is saved when the chat is created.
   async function handleAttachBox(boxId) {
     const previous = activeBoxId;
@@ -573,7 +573,7 @@ export default function App() {
     if (activeBoxId === boxId) setActiveBoxId(null);
   }
 
-  function handleKeyDown(e) { {
+  function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -607,14 +607,14 @@ export default function App() {
           onNewChat={startNewChat}
           onStartIncognito={startIncognitoChat}
           onImportFile={handleImportFile}
-                   onOpenSettings={openSettings}
+          onOpenSettings={openSettings}
           onOpenBoxes={() => setBoxPanelOpen(true)}
         />
 
         <div className="main">
           <TopBar
             isIncognito={isIncognito}
-                        onEndIncognito={() => setEincmDialogOpen(true)}
+            onEndIncognito={() => setEincmDialogOpen(true)}
             boxAttached={!!effectiveBoxId}
             onDetachBox={() => handleAttachBox(null)}
             activeDoc={activeDoc}
@@ -668,7 +668,7 @@ export default function App() {
         initialSection={settingsSection}
       />
 
-        <BoxPanel
+      <BoxPanel
         open={boxPanelOpen}
         onClose={() => setBoxPanelOpen(false)}
         activeBoxId={effectiveBoxId}
@@ -712,4 +712,4 @@ export default function App() {
       )}
     </div>
   );
-}}
+}
