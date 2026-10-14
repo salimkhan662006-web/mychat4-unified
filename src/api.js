@@ -265,6 +265,8 @@ export async function resetAccountData() {
     const errText = await readErrorDetail(res);
     throw new Error(`Could not reset account data: ${res.status} ${errText}`);
   }
+  // Tell the app so it can clear the open chat and detach its box.
+  window.dispatchEvent(new Event("mychat4:data-reset"));
   return res.json();
 }
 

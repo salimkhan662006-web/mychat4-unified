@@ -553,6 +553,18 @@ export default function App() {
     }
   }
 
+  // After "Reset data" in Settings, clear what is on screen, so a deleted chat
+  // and its box don't linger and new messages don't try to save into a chat
+  // that no longer exists. (Incognito chats are local, so they are left alone.)
+  useEffect(() => {
+    function onDataReset() {
+      setActiveBoxId(null);
+      if (!isIncognito) startNewChat();
+    }
+    window.addEventListener("mychat4:data-reset", onDataReset);
+    return () => window.removeEventListener("mychat4:data-reset", onDataReset);
+  }, [isIncognito, user?.id]);
+
   // Attach (boxId) or detach (null) a box. If this chat already exists on the
   // server the link is saved there; otherwise it is saved when the chat is created.
   async function handleAttachBox(boxId) {
