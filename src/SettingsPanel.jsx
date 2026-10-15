@@ -10,6 +10,7 @@ const ENDPOINT_LABELS = {
   agent: "📄 Documents",
   search: "🔍 Web search",
   document_gen: "🎯 Slides & sheets",
+  box_suggest: "💡 Box suggestions",
 };
 
 // Bar width as a percentage — safe when the total is zero.

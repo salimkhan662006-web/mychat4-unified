@@ -136,3 +136,30 @@
 .bx-danger-zone {
   margin-top: 28px; padding-top: 16px; border-top: 1px solid rgba(255,46,46,0.12);
 }
+/* K2: "Suggest note" chip and suggestion card, under the latest reply */
+
+.sg-wrap { margin: -6px 0 0 52px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+.sg-card {
+  width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 14px;
+  background: rgba(255,46,46,0.05); border: 1px solid rgba(255,46,46,0.22);
+}
+
+.sg-label {
+  font-size: 10.5px; font-weight: 600; color: #FF6B6B;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+}
+
+.sg-item { padding: 8px 0; border-bottom: 1px solid rgba(255,46,46,0.1); }
+.sg-item:last-of-type { border-bottom: none; }
+
+.sg-text { font-size: 12.5px; color: #E0D0CC; line-height: 1.55; margin-bottom: 8px; }
+
+.sg-actions { display: flex; gap: 6px; }
+
+.sg-muted { font-size: 11.5px; color: #8A7570; line-height: 1.5; }
+
+.sg-error {
+  font-size: 11.5px; color: #FF9E9E; padding: 8px 12px; border-radius: 8px;
+  background: rgba(255,46,46,0.08); border: 1px solid rgba(255,46,46,0.3); max-width: 520px;
+}

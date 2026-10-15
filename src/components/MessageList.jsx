@@ -1,10 +1,28 @@
 // The scrolling conversation: picks the right card for each message type,
 // shows the typing indicator, and keeps the view scrolled to the newest message.
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import SearchCard from "./SearchCard";
 import DocCard from "./DocCard";
 import GenCard from "./GenCard";
+import SuggestChip from "./SuggestChip";
+
+// The newest real AI reply (not a greeting/status line).
+function lastAssistantTextId(messages) {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m.role === "assistant" && m.type === "text" && !m.isGreeting) return m.id;
+  }
+  return null;
+}
+
+// The user message that prompted the reply at `index`.
+function userTextBefore(messages, index) {
+  for (let i = index - 1; i >= 0; i--) {
+    if (messages[i].role === "user" && messages[i].type === "text") return messages[i].content;
+  }
+  return "";
+}
 
 export default function MessageList({
   messages,
@@ -17,6 +35,7 @@ export default function MessageList({
   onPresetTask,
   onExpandPreview,
   onDownload,
+  boxId,
 }) {
   const bottomRef = useRef(null);
 
@@ -24,9 +43,11 @@ export default function MessageList({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, displayed, busy]);
 
+  const suggestTargetId = boxId ? lastAssistantTextId(messages) : null;
+
   return (
     <div className="messages">
-      {messages.map((m) => {
+      {messages.map((m, index) => {
         if (m.type === "doc-card") {
           return <DocCard key={m.id} message={m} onPresetTask={onPresetTask} />;
         }
@@ -43,13 +64,25 @@ export default function MessageList({
             />
           );
         }
+
+        const showSuggest = m.id === suggestTargetId && streamingMsgId !== m.id && !busy;
+
         return (
-          <MessageBubble
-            key={m.id}
-            message={m}
-            isStreaming={streamingMsgId === m.id}
-            displayed={displayed}
-          />
+          <Fragment key={m.id}>
+            <MessageBubble
+              message={m}
+              isStreaming={streamingMsgId === m.id}
+              displayed={displayed}
+            />
+            {showSuggest && (
+              <SuggestChip
+                key={`sg-${m.id}`}
+                boxId={boxId}
+                userMessage={userTextBefore(messages, index)}
+                reply={m.content}
+              />
+            )}
+          </Fragment>
         );
       })}
 

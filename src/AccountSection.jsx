@@ -152,7 +152,7 @@ export default function AccountSection() {
                 you across devices. When you attach a box to a chat, its text is sent to the AI
                 provider along with your messages, like any other message. Obvious secrets (keys,
                 passwords, card, ID or phone numbers, emails) are blocked before saving. Incognito
-                chats never use a box. Boxes are deleted by Reset data and Delete account.
+                chats never use a box.   Boxes are deleted by Reset data and Delete account. The "Suggest note" button sends the latest reply to an AI provider; nothing is saved to a box until you approve it.
               </div>
             </div>
           </div>

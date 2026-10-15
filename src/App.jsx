@@ -642,6 +642,7 @@ export default function App() {
             errorMsg={errorMsg}
             importError={eincmImportError}
             onPresetTask={handlePresetTask}
+            boxId={effectiveBoxId}
             onExpandPreview={setExpandedPreview}
             onDownload={handleDownloadGenerated}
           />

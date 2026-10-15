@@ -379,8 +379,15 @@ export const updateBox = (boxId, updates) =>
   boxRequest("PATCH", `/boxes/${boxId}`, updates, "Could not save box");
 export const deleteBox = (boxId) =>
   boxRequest("DELETE", `/boxes/${boxId}`, null, "Could not delete box");
-export const addBoxNote = (boxId, content) =>
-  boxRequest("POST", `/boxes/${boxId}/notes`, { content }, "Could not add note");
+export const addBoxNote = (boxId, content, source = "user") =>
+  boxRequest("POST", `/boxes/${boxId}/notes`, { content, source }, "Could not add note");
+export const suggestBoxNotes = (boxId, userMessage, assistantReply) =>
+  boxRequest(
+    "POST",
+    `/boxes/${boxId}/suggest-notes`,
+    { user_message: userMessage, assistant_reply: assistantReply },
+    "Could not get suggestions"
+  );
 export const updateBoxNote = (boxId, noteId, content) =>
   boxRequest("PATCH", `/boxes/${boxId}/notes/${noteId}`, { content }, "Could not save note");
 export const deleteBoxNote = (boxId, noteId) =>
