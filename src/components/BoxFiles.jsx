@@ -4,7 +4,14 @@
 import { useState, useEffect, useRef } from "react";
 import { listBoxFiles, uploadBoxFile, deleteBoxFile } from "../api";
 
-const ACCEPT = ".txt,.md,.py,.js,.jsx,.ts,.tsx,.json,.csv,.css,.html,.sql,.yml,.yaml,.pdf";
+// No `accept` filter on the input on purpose: phones hide files whose type they
+// don't know (.py, .jsx...), so the picker looked empty. We check the type here instead.
+const ALLOWED = [".txt", ".md", ".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".csv", ".css", ".html", ".sql", ".yml", ".yaml", ".pdf"];
+
+function extOf(name) {
+  const i = name.lastIndexOf(".");
+  return i >= 0 ? name.slice(i).toLowerCase() : "";
+}
 
 function formatChars(n) {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M chars`;
@@ -51,6 +58,11 @@ export default function BoxFiles({ boxId, onError }) {
     const file = e.target.files[0];
     if (!file || busy) return;
     onError("");
+    if (!ALLOWED.includes(extOf(file.name))) {
+      onError(`"${file.name}" isn't a supported type. Allowed: ${ALLOWED.join(" ")}`);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     if (limits && file.size > limits.max_upload_bytes) {
       onError(`That file is over ${Math.round(limits.max_upload_bytes / (1024 * 1024))} MB.`);
       if (inputRef.current) inputRef.current.value = "";
@@ -122,7 +134,6 @@ export default function BoxFiles({ boxId, onError }) {
           <input
             ref={inputRef}
             type="file"
-            accept={ACCEPT}
             onChange={handleFile}
             disabled={busy || full}
             style={{ display: "none" }}

@@ -37,7 +37,6 @@ export default function ChatInput({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.txt"
             onChange={onFileChange}
             style={{ display: "none" }}
             disabled={uploading}
