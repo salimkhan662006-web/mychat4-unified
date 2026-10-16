@@ -1,6 +1,7 @@
 // Box panel (right-hand drawer): list your boxes; inside one, edit its
 // Instructions and manage its Notes; attach it to the current chat.
 import { useState, useEffect } from "react";
+import BoxFiles from "./BoxFiles";
 import {
   listBoxes,
   createBox,
@@ -358,6 +359,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                 <span className="bx-counter-inline">{noteDraft.length} / {MAX_NOTE}</span>
               </div>
 
+              <BoxFiles boxId={detail.box.id} onError={setError} />
               <div className="bx-danger-zone">
                 <button className="bx-btn danger" onClick={handleDeleteBox}>Delete this box</button>
               </div>

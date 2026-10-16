@@ -392,3 +392,18 @@ export const updateBoxNote = (boxId, noteId, content) =>
   boxRequest("PATCH", `/boxes/${boxId}/notes/${noteId}`, { content }, "Could not save note");
 export const deleteBoxNote = (boxId, noteId) =>
   boxRequest("DELETE", `/boxes/${boxId}/notes/${noteId}`, null, "Could not delete note");
+export const listBoxFiles = (boxId) =>
+  boxRequest("GET", `/boxes/${boxId}/files`, null, "Could not load files");
+export const deleteBoxFile = (boxId, fileId) =>
+  boxRequest("DELETE", `/boxes/${boxId}/files/${fileId}`, null, "Could not remove file");
+export async function uploadBoxFile(boxId, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${BACKEND_URL}/boxes/${boxId}/files`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  if (!res.ok) throw new Error(await readErrorDetail(res));
+  return res.json();
+}
