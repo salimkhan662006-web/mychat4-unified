@@ -1,0 +1,46 @@
+/* Model picker chip + menu (SU-2) */
+
+.md-wrap { position: relative; display: flex; justify-content: flex-start; margin-bottom: 8px; }
+
+.md-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  background: rgba(255,46,46,0.06); border: 1px solid rgba(255,46,46,0.25);
+  color: #E0A8A3; transition: all 0.2s; user-select: none;
+}
+
+.md-chip:hover { background: rgba(255,46,46,0.14); color: #FFC7C4; }
+.md-chip.disabled { opacity: 0.45; cursor: not-allowed; }
+
+.md-chip.frontier {
+  border-color: #FF2E2E; color: #FFB3B0; background: rgba(255,46,46,0.16);
+  box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 20px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.5));
+}
+
+.md-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF4444; box-shadow: 0 0 6px rgba(255,46,46,0.6); }
+.md-chip-count { font-size: 10px; font-family: monospace; color: #FF9E9E; }
+.md-chip-caret { font-size: 10px; opacity: 0.7; }
+
+.md-menu {
+  position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 20;
+  width: 320px; max-width: 86vw; padding: 6px;
+  background: #0a0505; border: 1px solid rgba(255,46,46,0.28); border-radius: 14px;
+  box-shadow: 0 0 40px rgba(255,46,46,0.14), 0 16px 40px rgba(0,0,0,0.6);
+}
+
+.md-item { padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+.md-item:hover { background: rgba(255,46,46,0.08); }
+.md-item.active { background: rgba(255,46,46,0.16); box-shadow: inset 0 0 0 1px rgba(255,46,46,0.3); }
+.md-item.locked { opacity: 0.55; cursor: not-allowed; }
+
+.md-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.md-item-label { font-size: 12.5px; font-weight: 600; color: #F2E0DC; }
+.md-item-blurb { font-size: 11px; color: #8A7570; margin-top: 3px; line-height: 1.45; }
+.md-item-note { font-size: 10.5px; color: #FF9E9E; margin-top: 5px; line-height: 1.4; }
+
+.md-tag {
+  font-size: 9px; padding: 2px 7px; border-radius: 6px; font-weight: 600;
+  background: rgba(255,255,255,0.06); color: #C9938D;
+}
+
+.md-tag.frontier { background: rgba(255,46,46,0.25); color: #FFB3B0; }

@@ -43,7 +43,7 @@ async function readErrorDetail(res) {
  * Sends a chat message and returns the AI's reply plus which provider
  * answered. Works whether or not the user is logged in.
  */
-export async function sendMessage(history, newMessage, boxId = null) {
+export async function sendMessage(history, newMessage, boxId = null, model = null) {
   // Only real conversation turns go to the AI: skip document cards, generated-file
   // cards, and the app's own greeting/status messages (isGreeting).
   const formattedHistory = history
@@ -60,6 +60,7 @@ export async function sendMessage(history, newMessage, boxId = null) {
       history: formattedHistory,
       message: newMessage,
       ...(boxId ? { box_id: boxId } : {}),
+      ...(model && model !== "auto" ? { model } : {}),
     }),
   });
 
@@ -371,6 +372,7 @@ async function boxRequest(method, path, body, errLabel) {
   return res.json();
 }
 
+export const listModels = () => boxRequest("GET", "/models", null, "Could not load models");
 export const listBoxes = () => boxRequest("GET", "/boxes", null, "Could not load boxes");
 export const createBox = (title, instructions = "") =>
   boxRequest("POST", "/boxes", { title, instructions }, "Could not create box");

@@ -1,3 +1,5 @@
+import ModelPicker from "./ModelPicker";
+
 // Bottom input zone: attachment indicator, attach / generate / search buttons,
 // the text box, and the send button.
 
@@ -17,6 +19,10 @@ export default function ChatInput({
   onFileChange,
   activeDoc,
   onClearDoc,
+  models,
+  frontierInfo,
+  selectedModel,
+  onSelectModel,
 }) {
   return (
     <div className="input-zone">
@@ -31,6 +37,13 @@ export default function ChatInput({
           </span>
         </div>
       )}
+      <ModelPicker
+        models={models}
+        frontierInfo={frontierInfo}
+        value={selectedModel}
+        onChange={onSelectModel}
+        disabled={loading || generating || searching}
+      />
       <div className="input-shell">
         <label className="attach-btn" title="Attach a document">
           {uploading ? "…" : "📎"}

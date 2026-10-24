@@ -10,6 +10,7 @@ import {
   downloadGeneratedFile,
   runWebSearch,
   updateConversation,
+  listModels,
 } from "./api";
 import { useStreamingText } from "./useStreamingText";
 import SettingsPanel from "./SettingsPanel";
@@ -81,6 +82,10 @@ export default function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [boxPanelOpen, setBoxPanelOpen] = useState(false);
   const [activeBoxId, setActiveBoxId] = useState(null); // box attached to the current chat
+  // Model picker (SU-2). "auto" = the normal free chain. frontierInfo = { trial_total, trial_left }.
+  const [models, setModels] = useState([]);
+  const [frontierInfo, setFrontierInfo] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("auto");
   // Incognito chats never use a box, whatever is selected.
   const effectiveBoxId = isIncognito ? null : activeBoxId;
   const importFileRef = useRef(null);
@@ -394,7 +399,11 @@ export default function App() {
       persistMessage(convId, "user", text);
 
       const history = messages;
-      const data = await withWakeDetection(sendMessage(history, text, effectiveBoxId));
+      const data = await withWakeDetection(sendMessage(history, text, effectiveBoxId, selectedModel));
+      if (data.trial_left !== null && data.trial_left !== undefined) {
+        setFrontierInfo((f) => (f ? { ...f, trial_left: data.trial_left } : f));
+        if (data.trial_left <= 0) setSelectedModel("auto"); // trial used up: back to the free chain
+      }
       const msgId = pushMessage({
         role: "assistant",
         type: "text",
@@ -410,6 +419,11 @@ export default function App() {
       });
     } catch (err) {
       setErrorMsg(err.message);
+      if (String(err.message).includes("Backend error 402")) {
+        // Frontier trial is used up: stop offering it and fall back to the free chain.
+        setFrontierInfo((f) => (f ? { ...f, trial_left: 0 } : f));
+        setSelectedModel("auto");
+      }
     } finally {
       setLoading(false);
     }
@@ -585,6 +599,43 @@ export default function App() {
     if (activeBoxId === boxId) setActiveBoxId(null);
   }
 
+  // Load the model list for the logged-in person. Free picks are remembered on this
+  // device; Frontier is never remembered, so a metered model is always a deliberate choice.
+  useEffect(() => {
+    setModels([]);
+    setFrontierInfo(null);
+    setSelectedModel("auto");
+    if (!user?.id) return;
+    let cancelled = false;
+    listModels()
+      .then((d) => {
+        if (cancelled) return;
+        const list = d.models || [];
+        setModels(list);
+        setFrontierInfo(d.frontier || null);
+        try {
+          const saved = localStorage.getItem("mychat4_model");
+          if (saved && list.some((m) => m.id === saved && m.tier !== "frontier")) setSelectedModel(saved);
+        } catch {
+          // storage unavailable: stay on Auto
+        }
+      })
+      .catch((err) => console.warn("Model list unavailable (non-fatal):", err.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  function handleSelectModel(id) {
+    setSelectedModel(id);
+    const m = models.find((x) => x.id === id);
+    try {
+      if (m && m.tier !== "frontier") localStorage.setItem("mychat4_model", id);
+    } catch {
+      // ignore
+    }
+  }
+
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -661,6 +712,10 @@ export default function App() {
             uploading={uploading}
             fileInputRef={fileInputRef}
             onFileChange={handleFileChange}
+            models={models}
+            frontierInfo={frontierInfo}
+            selectedModel={selectedModel}
+            onSelectModel={handleSelectModel}
             activeDoc={activeDoc}
             onClearDoc={clearActiveDoc}
           />

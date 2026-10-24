@@ -104,7 +104,7 @@ export default function AccountSection() {
               <div className="acc-transparency-label">AI & search providers</div>
               <div className="acc-transparency-desc">
                 To answer you, your message and recent conversation are sent to an AI
-                provider (Groq, Google Gemini, or OpenRouter), and web searches go to
+                provider (Groq, Google Gemini, or OpenRouter; Frontier mode sends your message to Moonshot AI's Kimi model through OpenRouter, and a small counter of your free Frontier messages is kept), and web searches go to
                 Tavily. Each has its own privacy terms, and some free tiers may keep
                 or use data to improve their services. Don't share anything you
                 wouldn't want a third-party AI service to process.
