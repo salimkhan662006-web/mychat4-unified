@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { MessageSquare, Bot, Activity, Hash, KeyRound, Package, VenetianMask } from "lucide-react";
 import { useAuth } from "./AuthContext";
 import { getAccountSummary, resetAccountData, requestAccountDeletion } from "./api";
+import Icon from "./components/Icon";
 
 export default function AccountSection() {
   const { user, signOut } = useAuth();
@@ -87,7 +89,7 @@ export default function AccountSection() {
         <div className="acc-section-title">What we store, and why</div>
         <div className="acc-transparency-card">
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">💬</span>
+            <span className="acc-transparency-icon"><Icon icon={MessageSquare} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Your conversations & messages</div>
               <div className="acc-transparency-desc">
@@ -99,7 +101,7 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">🤖</span>
+            <span className="acc-transparency-icon"><Icon icon={Bot} size={18} /></span>
             <div>
               <div className="acc-transparency-label">AI & search providers</div>
               <div className="acc-transparency-desc">
@@ -112,7 +114,7 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">📊</span>
+            <span className="acc-transparency-icon"><Icon icon={Activity} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Usage & token counts</div>
               <div className="acc-transparency-desc">
@@ -123,7 +125,7 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">🔢</span>
+            <span className="acc-transparency-icon"><Icon icon={Hash} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Daily request counter</div>
               <div className="acc-transparency-desc">
@@ -134,7 +136,7 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">🔑</span>
+            <span className="acc-transparency-icon"><Icon icon={KeyRound} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Login identity</div>
               <div className="acc-transparency-desc">
@@ -144,7 +146,7 @@ export default function AccountSection() {
             </div>
           </div>
                     <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">📦</span>
+            <span className="acc-transparency-icon"><Icon icon={Package} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Boxes (instructions, notes & files)</div>
               <div className="acc-transparency-desc">
@@ -158,7 +160,7 @@ export default function AccountSection() {
             </div>
           </div>
           <div className="acc-transparency-row">
-            <span className="acc-transparency-icon">🚫</span>
+            <span className="acc-transparency-icon"><Icon icon={VenetianMask} size={18} /></span>
             <div>
               <div className="acc-transparency-label">Incognito chats</div>
               <div className="acc-transparency-desc">

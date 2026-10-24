@@ -1,7 +1,9 @@
 // Box panel (right-hand drawer): list your boxes; inside one, edit its
 // Instructions and manage its Notes; attach it to the current chat.
 import { useState, useEffect } from "react";
+import { ArrowLeft, X, Package, Check } from "lucide-react";
 import BoxFiles from "./BoxFiles";
+import Icon from "./Icon";
 import {
   listBoxes,
   createBox,
@@ -191,9 +193,9 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
     <div className="bx-overlay" onClick={onClose}>
       <div className="bx-panel" onClick={(e) => e.stopPropagation()}>
         <div className="bx-header">
-          {openBoxId && <div className="bx-icon-btn" onClick={backToList} title="All boxes">←</div>}
+          {openBoxId && <div className="bx-icon-btn" onClick={backToList} title="All boxes"><Icon icon={ArrowLeft} size={14} /></div>}
           <div className="bx-title">{openBoxId ? detail?.box.title || "Box" : "Boxes"}</div>
-          <div className="bx-icon-btn" onClick={onClose}>✕</div>
+          <div className="bx-icon-btn" onClick={onClose}><Icon icon={X} size={14} /></div>
         </div>
 
         {error && <div className="bx-error">{error}</div>}
@@ -232,7 +234,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
 
               {boxes.map((b) => (
                 <div key={b.id} className="bx-row" onClick={() => openBox(b.id)}>
-                  <span className="bx-row-icon">📦</span>
+                  <span className="bx-row-icon"><Icon icon={Package} size={16} /></span>
                   <div className="bx-row-text">
                     <div className="bx-row-title">{b.title}</div>
                     <div className="bx-row-meta">
@@ -254,7 +256,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                 {canAttach ? (
                   isAttached ? (
                     <button className="bx-btn ghost" onClick={() => onAttach(null)}>
-                      ✓ Attached to this chat — detach
+                      <Icon icon={Check} size={14} className="ico-inline" />Attached to this chat — detach
                     </button>
                   ) : (
                     <button className="bx-btn primary" onClick={() => onAttach(detail.box.id)}>
@@ -290,7 +292,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                 <button className="bx-btn primary" disabled={!dirty || saving} onClick={handleSaveBox}>
                   {saving ? "Saving…" : "Save"}
                 </button>
-                {savedFlash && <span className="bx-saved">✓ Saved</span>}
+                {savedFlash && <span className="bx-saved"><Icon icon={Check} size={12} className="ico-inline" />Saved</span>}
               </div>
 
               <div className="bx-section-label">

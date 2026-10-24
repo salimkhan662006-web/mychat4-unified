@@ -1,6 +1,9 @@
 // Full-size preview of a generated presentation or spreadsheet.
 // `preview` is { plan, docType }.
 
+import { X, Download } from "lucide-react";
+import Icon from "./Icon";
+
 export default function PreviewModal({ preview, onClose, onDownload }) {
   const { plan, docType } = preview;
   const isPptx = docType === "pptx";
@@ -17,7 +20,7 @@ export default function PreviewModal({ preview, onClose, onDownload }) {
                 : `${plan.rows?.length || 0} rows`}
             </div>
           </div>
-          <div className="preview-modal-close" onClick={onClose}>✕</div>
+          <div className="preview-modal-close" onClick={onClose}><Icon icon={X} size={14} /></div>
         </div>
 
         <div className="preview-modal-body">
@@ -57,7 +60,7 @@ export default function PreviewModal({ preview, onClose, onDownload }) {
           style={{ margin: "16px 24px" }}
           onClick={() => onDownload(plan, docType)}
         >
-          ⬇ Download {isPptx ? ".pptx" : ".xlsx"}
+          <Icon icon={Download} size={14} className="ico-inline" />Download {isPptx ? ".pptx" : ".xlsx"}
         </div>
       </div>
     </div>

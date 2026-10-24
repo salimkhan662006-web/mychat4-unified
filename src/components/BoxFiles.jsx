@@ -2,7 +2,9 @@
 // Upload text/code/PDF files into a box, see what is stored, delete files.
 // Only extracted text is kept on the server, never the original file.
 import { useState, useEffect, useRef } from "react";
+import { FileText } from "lucide-react";
 import { listBoxFiles, uploadBoxFile, deleteBoxFile } from "../api";
+import Icon from "./Icon";
 
 // No `accept` filter on the input on purpose: phones hide files whose type they
 // don't know (.py, .jsx...), so the picker looked empty. We check the type here instead.
@@ -115,7 +117,7 @@ export default function BoxFiles({ boxId, onError }) {
 
       {files.map((f) => (
         <div key={f.id} className="bx-row" style={{ cursor: "default" }}>
-          <span className="bx-row-icon">📄</span>
+          <span className="bx-row-icon"><Icon icon={FileText} size={16} /></span>
           <div className="bx-row-text">
             <div className="bx-row-title">{f.filename}</div>
             <div className="bx-row-meta">

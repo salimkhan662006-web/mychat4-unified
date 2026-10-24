@@ -1,5 +1,8 @@
 // Enhanced Incognito Mode — "end session" dialog: save to a file, or delete for good.
 
+import { FileDown, Trash2 } from "lucide-react";
+import Icon from "./Icon";
+
 export default function EincmDialog({ onSave, onDelete, onCancel }) {
   return (
     <div className="eincm-overlay" onClick={onCancel}>
@@ -10,7 +13,7 @@ export default function EincmDialog({ onSave, onDelete, onCancel }) {
         </div>
 
         <div className="eincm-option" onClick={onSave}>
-          <div className="eincm-option-icon">📦</div>
+          <div className="eincm-option-icon"><Icon icon={FileDown} size={22} /></div>
           <div>
             <div className="eincm-option-title">Compressed Save</div>
             <div className="eincm-option-desc">
@@ -21,7 +24,7 @@ export default function EincmDialog({ onSave, onDelete, onCancel }) {
         </div>
 
         <div className="eincm-option danger" onClick={onDelete}>
-          <div className="eincm-option-icon">🗑</div>
+          <div className="eincm-option-icon"><Icon icon={Trash2} size={22} /></div>
           <div>
             <div className="eincm-option-title">Standard Delete</div>
             <div className="eincm-option-desc">

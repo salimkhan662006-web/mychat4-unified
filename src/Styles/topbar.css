@@ -39,6 +39,6 @@
 
 .incognito-end-btn:hover { background: rgba(255,46,46,0.28); }
 
-.pill-clear { cursor: pointer; opacity: 0.6; padding: 0 2px; }
+.pill-clear { display: inline-flex; cursor: pointer; opacity: 0.6; padding: 0 2px; }
 
 .pill-clear:hover { opacity: 1; }

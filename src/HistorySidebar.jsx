@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { VenetianMask, MessageSquare, Pin, Trash2, X, Check } from "lucide-react";
 import {
   listConversations,
   updateConversation,
   deleteConversation,
   createBoxedConversation,
 } from "./api";
+import Icon from "./components/Icon";
 import VaultStrip from "./components/VaultStrip";
 
 export default function HistorySidebar({
@@ -105,7 +107,7 @@ export default function HistorySidebar({
       <div className="history-sidebar" onClick={(e) => e.stopPropagation()}>
         <div className="hs-header">
           <div className="hs-title">Chat History</div>
-          <div className="hs-close" onClick={onClose}>✕</div>
+          <div className="hs-close" onClick={onClose}><Icon icon={X} size={14} /></div>
         </div>
 
         <div className="hs-actions">
@@ -113,7 +115,7 @@ export default function HistorySidebar({
             + New chat
           </div>
           <div className="hs-action-btn ghost" onClick={onStartIncognito}>
-            🕶 Incognito
+            <Icon icon={VenetianMask} size={14} className="ico-inline" />Incognito
           </div>
         </div>
 
@@ -141,7 +143,7 @@ export default function HistorySidebar({
                   className={`hs-item incognito ${activeConversationId === s.id ? "active" : ""}`}
                   onClick={() => onSelectConversation(s.id, true)}
                 >
-                  <span className="hs-item-icon">🕶</span>
+                  <Icon icon={VenetianMask} size={14} className="hs-item-icon" />
                   <span className="hs-item-title">{s.title}</span>
                   <span className="hs-item-badge">{s.vaulted ? "Vault" : "Incognito"}</span>
                 </div>
@@ -336,10 +338,10 @@ function ConversationRow({ conv, active, boxMode, selected, onSelect, onTogglePi
     <div className={`hs-item ${active ? "active" : ""}`} onClick={onSelect}>
       {boxMode && (
         <div className={`hs-item-checkbox ${selected ? "checked" : ""}`}>
-          {selected ? "✓" : ""}
+          {selected && <Icon icon={Check} size={11} stroke={2.5} />}
         </div>
       )}
-      <span className="hs-item-icon">{conv.pinned ? "📌" : "💬"}</span>
+      <Icon icon={conv.pinned ? Pin : MessageSquare} size={14} className="hs-item-icon" />
       <span className="hs-item-title">{conv.title}</span>
       {!boxMode && (
         <div className="hs-item-actions">
@@ -348,10 +350,10 @@ function ConversationRow({ conv, active, boxMode, selected, onSelect, onTogglePi
             onClick={onTogglePin}
             title={conv.pinned ? "Unpin" : "Pin"}
           >
-            📌
+            <Icon icon={Pin} size={13} />
           </div>
           <div className="hs-item-action" onClick={onDelete} title="Delete">
-            🗑
+            <Icon icon={Trash2} size={13} />
           </div>
         </div>
       )}

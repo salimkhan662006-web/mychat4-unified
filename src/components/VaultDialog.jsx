@@ -4,6 +4,8 @@
 // a thrown Error's message is shown to the person.
 
 import { useState } from "react";
+import { ShieldCheck, Unlock, Trash2 } from "lucide-react";
+import Icon from "./Icon";
 
 const MIN_LEN = 8;
 
@@ -54,7 +56,7 @@ export default function VaultDialog({ mode, onSetup, onUnlock, onErase, onClose 
       <div className="vault-dialog" onClick={(e) => e.stopPropagation()}>
         {mode === "setup" && (
           <form onSubmit={submitSetup}>
-            <div className="vault-title">🔐 Set up your vault</div>
+            <div className="vault-title"><Icon icon={ShieldCheck} size={18} className="ico-inline" />Set up your vault</div>
             <div className="vault-desc">
               Choose a passphrase. Your incognito chats will be encrypted on this
               device with it, so they survive closing the app without ever reaching
@@ -108,7 +110,7 @@ export default function VaultDialog({ mode, onSetup, onUnlock, onErase, onClose 
 
         {mode === "unlock" && (
           <form onSubmit={submitUnlock}>
-            <div className="vault-title">🔓 Unlock your vault</div>
+            <div className="vault-title"><Icon icon={Unlock} size={18} className="ico-inline" />Unlock your vault</div>
             <div className="vault-desc">
               Enter your passphrase to bring your saved incognito chats back.
             </div>
@@ -138,7 +140,7 @@ export default function VaultDialog({ mode, onSetup, onUnlock, onErase, onClose 
 
         {mode === "erase" && (
           <form onSubmit={submitErase}>
-            <div className="vault-title">🗑 Erase vault</div>
+            <div className="vault-title"><Icon icon={Trash2} size={18} className="ico-inline" />Erase vault</div>
             <div className="vault-desc">
               This permanently deletes every encrypted chat in your vault and the
               vault itself. It cannot be undone.

@@ -1,5 +1,8 @@
 // Preview card for a generated presentation or spreadsheet, with a download button.
 
+import { Presentation, Table, Maximize2, Download } from "lucide-react";
+import Icon from "./Icon";
+
 export default function GenCard({ message, onExpand, onDownload }) {
   const m = message;
   const isPptx = m.docType === "pptx";
@@ -9,7 +12,7 @@ export default function GenCard({ message, onExpand, onDownload }) {
       <div className="msg-avatar"></div>
       <div className="gen-card">
         <div className="gen-card-header">
-          <span className="gen-card-icon">{isPptx ? "🎯" : "📊"}</span>
+          <span className="gen-card-icon"><Icon icon={isPptx ? Presentation : Table} size={18} /></span>
           <div>
             <div className="gen-card-title">{m.plan.title}</div>
             <div className="gen-card-meta">
@@ -23,7 +26,7 @@ export default function GenCard({ message, onExpand, onDownload }) {
             onClick={() => onExpand({ plan: m.plan, docType: m.docType })}
             title="View full preview"
           >
-            ⤢
+            <Icon icon={Maximize2} size={14} />
           </div>
         </div>
 
@@ -67,7 +70,7 @@ export default function GenCard({ message, onExpand, onDownload }) {
           className="gen-download-btn"
           onClick={() => onDownload(m.plan, m.docType)}
         >
-          ⬇ Download {isPptx ? ".pptx" : ".xlsx"}
+          <Icon icon={Download} size={14} className="ico-inline" />Download {isPptx ? ".pptx" : ".xlsx"}
         </div>
       </div>
     </div>

@@ -1,16 +1,38 @@
 import { useState, useEffect } from "react";
+import {
+  Activity,
+  Timer,
+  Palette,
+  User,
+  Info,
+  RefreshCw,
+  X,
+  MessageSquare,
+  FileText,
+  Search,
+  Presentation,
+  Lightbulb,
+} from "lucide-react";
 import AccountSection from "./AccountSection";
 import AppearanceSection from "./AppearanceSection";
 import { getUsage, getRateLimits } from "./api";
+import Icon from "./components/Icon";
 import { BUILD_ID } from "./version";
 
 // Friendly names for each feature in the "By feature" list.
 const ENDPOINT_LABELS = {
-  chat: "💬 Chat",
-  agent: "📄 Documents",
-  search: "🔍 Web search",
-  document_gen: "🎯 Slides & sheets",
-  box_suggest: "💡 Box suggestions",
+  chat: "Chat",
+  agent: "Documents",
+  search: "Web search",
+  document_gen: "Slides & sheets",
+  box_suggest: "Box suggestions",
+};
+const ENDPOINT_ICONS = {
+  chat: MessageSquare,
+  agent: FileText,
+  search: Search,
+  document_gen: Presentation,
+  box_suggest: Lightbulb,
 };
 
 // Bar width as a percentage — safe when the total is zero.
@@ -19,11 +41,11 @@ function percentOf(part, total) {
 }
 
 const SETTINGS_SECTIONS = [
-  { id: "usage", label: "Usage", icon: "📊" },
-  { id: "limits", label: "Rate Limits", icon: "⏱️" },
-  { id: "appearance", label: "Appearance", icon: "🎨" },
-  { id: "account", label: "Account", icon: "👤" },
-  { id: "about", label: "About", icon: "ℹ️" },
+  { id: "usage", label: "Usage", icon: Activity },
+  { id: "limits", label: "Rate Limits", icon: Timer },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "account", label: "Account", icon: User },
+  { id: "about", label: "About", icon: Info },
 ];
 
 export default function SettingsPanel({ open, onClose, initialSection = "usage" }) {
@@ -88,7 +110,7 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
               className={`settings-nav-item ${activeSection === s.id ? "active" : ""}`}
               onClick={() => setActiveSection(s.id)}
             >
-              <span>{s.icon}</span>
+              <Icon icon={s.icon} size={16} />
               <span>{s.label}</span>
             </div>
           ))}
@@ -106,10 +128,10 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
                   onClick={activeSection === "usage" ? fetchUsage : fetchLimits}
                   title="Refresh"
                 >
-                  ↻
+                  <Icon icon={RefreshCw} size={14} />
                 </div>
               )}
-              <div className="settings-close" onClick={onClose}>✕</div>
+              <div className="settings-close" onClick={onClose}><Icon icon={X} size={14} /></div>
             </div>
           </div>
 
@@ -172,7 +194,7 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
                     {Object.entries(usage.by_endpoint).map(([endpoint, stats]) => (
                       <div key={endpoint} className="usage-provider-row">
                         <div className="usage-provider-name">
-                          {ENDPOINT_LABELS[endpoint] || endpoint}
+                          {ENDPOINT_ICONS[endpoint] && <Icon icon={ENDPOINT_ICONS[endpoint]} size={13} className="ico-inline" />}{ENDPOINT_LABELS[endpoint] || endpoint}
                         </div>
                         <div className="usage-provider-bar-track">
                           <div
@@ -381,7 +403,7 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
         }
 
         .usage-provider-name {
-          width: 90px; flex-shrink: 0; font-size: 12.5px; font-weight: 500;
+          width: 130px; flex-shrink: 0; font-size: 12.5px; font-weight: 500;
           color: #E0A8A3; text-transform: capitalize;
         }
 

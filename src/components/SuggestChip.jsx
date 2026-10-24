@@ -3,7 +3,9 @@
 // the person taps Save on a suggestion. Suggestions live only in this
 // component's memory.
 import { useState } from "react";
+import { Lightbulb } from "lucide-react";
 import { suggestBoxNotes, addBoxNote } from "../api";
+import Icon from "./Icon";
 
 const MAX_NOTE = 500;
 
@@ -64,7 +66,7 @@ export default function SuggestChip({ boxId, userMessage, reply }) {
     <div className="sg-wrap">
       {status === "idle" && (
         <span className="chip" onClick={handleSuggest} title="Ask the AI what is worth saving to this box">
-          💡 Suggest note
+          <Icon icon={Lightbulb} size={13} className="ico-inline" />Suggest note
         </span>
       )}
 

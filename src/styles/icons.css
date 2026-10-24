@@ -1,0 +1,10 @@
+/* Lucide icons: inherit text colour, red glow when active/hovered */
+.ui-icon { display: block; flex-shrink: 0; }
+.ico-inline { display: inline-block; vertical-align: -3px; margin-right: 6px; }
+
+.history-dot:hover .ui-icon,
+.history-dot.active .ui-icon,
+.attach-btn.active-mode .ui-icon,
+.chip:hover .ui-icon {
+  filter: drop-shadow(0 0 calc(var(--glow-intensity, 0.5) * 8px) rgba(255,46,46,0.85));
+}

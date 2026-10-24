@@ -1,5 +1,8 @@
 // Web-search answer card: the AI's cited answer plus a clickable list of sources.
 
+import { Search } from "lucide-react";
+import Icon from "./Icon";
+
 // Extracts a display hostname from a URL without ever throwing —
 // search results come from the open web, so a malformed URL shouldn't
 // be able to crash the whole chat view.
@@ -57,7 +60,7 @@ export default function SearchCard({ message }) {
     <div className="msg-row ai">
       <div className="msg-avatar"></div>
       <div className="search-card">
-        <div className="search-card-label">🔍 Web search</div>
+        <div className="search-card-label"><Icon icon={Search} size={13} className="ico-inline" />Web search</div>
         <div className="search-card-answer">
           {renderAnswerWithCitations(m.content, m.id)}
         </div>

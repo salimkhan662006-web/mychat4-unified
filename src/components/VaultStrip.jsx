@@ -1,13 +1,16 @@
 // Small strip for the top of the Incognito section in the history sidebar.
 // status: "checking" | "unsupported" | "none" | "locked" | "unlocked"
 
+import { ShieldOff, ShieldCheck, Lock, Unlock } from "lucide-react";
+import Icon from "./Icon";
+
 export default function VaultStrip({ status, onSetup, onUnlock, onLock, onErase }) {
   if (status === "checking") return null;
 
   if (status === "unsupported") {
     return (
       <div className="vs-strip">
-        <span className="vs-text">🔐 Vault unavailable in this browser. Incognito stays memory-only.</span>
+        <span className="vs-text"><Icon icon={ShieldOff} size={13} className="ico-inline" />Vault unavailable in this browser. Incognito stays memory-only.</span>
       </div>
     );
   }
@@ -16,14 +19,14 @@ export default function VaultStrip({ status, onSetup, onUnlock, onLock, onErase 
     <div className="vs-strip">
       {status === "none" && (
         <>
-          <span className="vs-text">🔐 Keep incognito chats across sessions, encrypted on this device.</span>
+          <span className="vs-text"><Icon icon={ShieldCheck} size={13} className="ico-inline" />Keep incognito chats across sessions, encrypted on this device.</span>
           <span className="vs-btn primary" onClick={onSetup}>Set up</span>
         </>
       )}
 
       {status === "locked" && (
         <>
-          <span className="vs-text">🔒 Vault locked. Incognito chats are memory-only.</span>
+          <span className="vs-text"><Icon icon={Lock} size={13} className="ico-inline" />Vault locked. Incognito chats are memory-only.</span>
           <span className="vs-btn primary" onClick={onUnlock}>Unlock</span>
           <span className="vs-btn" onClick={onErase}>Erase</span>
         </>
@@ -31,7 +34,7 @@ export default function VaultStrip({ status, onSetup, onUnlock, onLock, onErase 
 
       {status === "unlocked" && (
         <>
-          <span className="vs-text">🔓 Vault unlocked. Incognito chats auto-save, encrypted.</span>
+          <span className="vs-text"><Icon icon={Unlock} size={13} className="ico-inline" />Vault unlocked. Incognito chats auto-save, encrypted.</span>
           <span className="vs-btn" onClick={onLock}>Lock</span>
           <span className="vs-btn" onClick={onErase}>Erase</span>
         </>

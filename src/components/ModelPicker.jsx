@@ -3,6 +3,8 @@
 // A Frontier model is metered: it shows how many free trial messages are left
 // and locks itself when they run out.
 import { useState, useEffect, useRef } from "react";
+import { ChevronDown } from "lucide-react";
+import Icon from "./Icon";
 
 export default function ModelPicker({ models, frontierInfo, value, onChange, disabled }) {
   const [open, setOpen] = useState(false);
@@ -41,7 +43,7 @@ export default function ModelPicker({ models, frontierInfo, value, onChange, dis
         <span className="md-chip-dot"></span>
         <span>{current.label}</span>
         {current.tier === "frontier" && <span className="md-chip-count">{trialLeft} left</span>}
-        <span className="md-chip-caret">▾</span>
+        <span className="md-chip-caret"><Icon icon={ChevronDown} size={12} /></span>
       </div>
 
       {open && (
