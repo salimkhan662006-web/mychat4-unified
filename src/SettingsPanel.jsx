@@ -255,7 +255,7 @@ export default function SettingsPanel({ open, onClose, initialSection = "usage" 
           {activeSection === "about" && (
             <div className="settings-body">
               <div className="settings-placeholder">
-                MyChat4 — built by Salim.<br />
+                IsahiriAI — built by Salim.<br />
                 Powered by Groq, Gemini, and OpenRouter with automatic fallback.<br />
                 <span style={{ opacity: 0.7 }}>Build: {BUILD_ID}</span>
               </div>

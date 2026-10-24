@@ -96,9 +96,9 @@ export default function AuthScreen() {
 
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-orb">M4</div>
+          <div className="auth-logo-orb">IA</div>
           <div className="auth-brand-mark">
-            MyChat<span>4</span>
+            Isahiri<span>AI</span>
           </div>
         </div>
 

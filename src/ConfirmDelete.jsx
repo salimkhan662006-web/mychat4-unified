@@ -29,7 +29,7 @@ export default function ConfirmDelete() {
   return (
     <div className="cd-root">
       <div className="cd-card">
-        <div className="cd-logo">M4</div>
+        <div className="cd-logo">IA</div>
 
         {status === "confirming" && (
           <>

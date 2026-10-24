@@ -15,7 +15,7 @@ export default function EincmDialog({ onSave, onDelete, onCancel }) {
             <div className="eincm-option-title">Compressed Save</div>
             <div className="eincm-option-desc">
               Download this chat as a file you keep — readable as text, and you
-              can drag it back into MyChat4 later to pick up right where you left off.
+              can drag it back into IsahiriAI later to pick up right where you left off.
             </div>
           </div>
         </div>

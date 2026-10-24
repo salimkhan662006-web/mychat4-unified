@@ -13,7 +13,7 @@ export default function TopBar({
     <div className="top-bar">
       <div className="brand">
         <div className="brand-mark">
-          MyChat<span>4</span>
+          Isahiri<span>AI</span>
         </div>
       </div>
       <div className="top-bar-right">

@@ -87,7 +87,7 @@ export default function ChatInput({
               ? "Search the web…"
               : generating
               ? "Planning your document…"
-              : "Message MyChat4, attach a document, or generate a presentation/spreadsheet…"
+              : "Message IsahiriAI, attach a document, or generate a presentation/spreadsheet…"
           }
           rows={1}
           value={input}

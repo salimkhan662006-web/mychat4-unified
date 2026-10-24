@@ -14,7 +14,7 @@ export default function HistoryRail({
   return (
     <div className="history-rail">
       <div className="history-curve"></div>
-      <div className="history-logo" onClick={onOpenHistory} title="Chat history">M4</div>
+      <div className="history-logo" onClick={onOpenHistory} title="Chat history">IA</div>
       <div className="history-items">
         <div
           className={`history-dot ${!isIncognito ? "active" : ""}`}

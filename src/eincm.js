@@ -83,7 +83,7 @@ export async function buildCompressedSaveFile(chatTitle, messages) {
 
   const readableTranscript = messages
     .map((m) => {
-      const speaker = m.role === "user" ? "You" : "MyChat4";
+      const speaker = m.role === "user" ? "You" : "IsahiriAI";
       return `${speaker}:\n${m.content}\n`;
     })
     .join("\n---\n\n");
@@ -97,20 +97,20 @@ export async function buildCompressedSaveFile(chatTitle, messages) {
 
   const compressedBlock = await compressToBase64(payload);
 
-  const fileContent = `# MyChat4 — Enhanced Incognito Save
+  const fileContent = `# IsahiriAI — Enhanced Incognito Save
 # Title: ${chatTitle}
 # Saved: ${timestamp}
 # Messages: ${messageCount}
 #
 # This file is readable as plain text below, and can also be dragged
-# back into MyChat4 to resume this exact conversation. Nothing in this
+# back into IsahiriAI to resume this exact conversation. Nothing in this
 # chat was ever stored on any server — it lives only in this file now.
 
 ${readableTranscript}
 
 # ============================================================
 # Do not edit anything below this line — it's used to restore
-# this chat if you drag this file back into MyChat4.
+# this chat if you drag this file back into IsahiriAI.
 # ============================================================
 __MCHAT4_DATA__${compressedBlock}__END__
 `;
