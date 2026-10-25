@@ -71,7 +71,7 @@
 /* ---- Phone-only overrides ---- */
 @media (max-width: 720px) {
   /* One input row: [+] [text] [send] */
-  .input-shell { flex-wrap: nowrap; align-items: flex-end; gap: 8px; padding: 8px 8px 8px 10px; border-radius: 22px; }
+  .input-shell { flex-wrap: nowrap; align-items: flex-end; gap: 8px; padding: 8px 8px 8px 10px; border-radius: 16px; }
   .chat-input { order: 0; flex: 1 1 auto; min-width: 0; min-height: 36px; padding: 8px 0; font-size: 16px; }
   .send-btn { margin-left: 0; }
 

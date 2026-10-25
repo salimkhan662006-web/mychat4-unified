@@ -1,0 +1,127 @@
+/* IsahiriAI surface pass: palette, scale pattern, tighter shapes.
+   Sits ON TOP of the older CSS files. Delete this file + its @import to undo it. */
+
+:root {
+  /* Palette */
+  --panel: #0a0506;
+  --glass-ai: rgba(12, 5, 6, 0.78);
+  --bubble-user: linear-gradient(135deg, #5c0f15 0%, #2b080c 100%);
+  --edge: rgba(255, 46, 46, 0.14);
+  --edge-strong: rgba(255, 46, 46, 0.34);
+
+  /* Shape */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Scale tile 28x16. The "0.13" values are the pattern strength: raise for more, lower for less. */
+  --scales: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16' viewBox='0 0 28 16'%3E%3Cg fill='none' stroke='%23FF2E2E' stroke-width='0.6' stroke-linecap='square'%3E%3Cpath d='M0 0L14 8L28 0M0 16L14 8L28 16' stroke-opacity='0.13'/%3E%3Cpath d='M14 8V3M0 16v-5M28 16v-5' stroke-opacity='0.08'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- Chat area: scales on the smoke-free diagonal only ---------- */
+.app-shell::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: var(--scales);
+  background-size: 28px 16px;
+  -webkit-mask-image: linear-gradient(135deg, transparent 10%, #000 38%, #000 62%, transparent 90%);
+  mask-image: linear-gradient(135deg, transparent 10%, #000 38%, #000 62%, transparent 90%);
+}
+
+/* ---------- Panels: pattern strong at the top, faded out toward the bottom ---------- */
+.app-root .history-sidebar,
+.app-root .settings-panel,
+.app-root .bx-panel,
+.app-root .preview-modal,
+.app-root .eincm-dialog,
+.app-root .vault-dialog {
+  background-color: var(--panel);
+  background-image: linear-gradient(180deg, rgba(10, 5, 6, 0) 0%, rgba(10, 5, 6, 0.92) 75%), var(--scales);
+  background-size: auto, 28px 16px;
+  border-color: var(--edge-strong);
+}
+.app-root .history-curve {
+  background: linear-gradient(180deg, rgba(10, 4, 5, 0) 0%, rgba(10, 4, 5, 0.9) 85%), var(--scales),
+              linear-gradient(135deg, rgba(20, 8, 9, 0.95), rgba(10, 4, 5, 0.98));
+  background-size: auto, 28px 16px, auto;
+  background-repeat: no-repeat, repeat, no-repeat;
+}
+
+/* ---------- Message bubbles ---------- */
+.app-root .msg-row.ai .msg-bubble {
+  background: var(--glass-ai);
+  border: 1px solid var(--edge);
+  border-radius: 3px var(--r-lg) var(--r-lg) var(--r-lg);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.app-root .msg-row.user .msg-bubble {
+  background: var(--bubble-user);
+  border: 1px solid rgba(255, 70, 70, 0.28);
+  border-radius: var(--r-lg) var(--r-lg) 3px var(--r-lg);
+  color: #FFEDEA;
+}
+.app-root .typing-bubble { border-radius: 3px var(--r-lg) var(--r-lg) var(--r-lg); }
+
+/* ---------- Cards, rows, buttons: tighter radii, fainter edges ---------- */
+.app-root .search-card, .app-root .gen-card, .app-root .doc-inline-card,
+.app-root .tree-diagram, .app-root .bar-chart, .app-root .sg-card,
+.app-root .acc-identity-card, .app-root .acc-transparency-card, .app-root .limit-card {
+  border-radius: var(--r-lg);
+  border-color: var(--edge);
+}
+.app-root .gen-card-preview, .app-root .tree-branch, .app-root .bx-note, .app-root .bx-row,
+.app-root .hs-item, .app-root .settings-nav-item, .app-root .usage-provider-row,
+.app-root .usage-stat-card, .app-root .acc-summary-stat, .app-root .usage-note,
+.app-root .app-option-btn, .app-root .eincm-option, .app-root .md-item, .app-root .search-source-item,
+.app-root .bx-input, .app-root .bx-textarea, .app-root .vault-input, .app-root .acc-confirm-input,
+.app-root .vault-warning, .app-root .vault-error, .app-root .bx-error, .app-root .hs-error,
+.app-root .error-box, .app-root .attach-indicator, .app-root .vs-strip {
+  border-radius: var(--r-md);
+}
+.app-root .bx-btn, .app-root .vault-btn, .app-root .hs-action-btn, .app-root .gen-download-btn,
+.app-root .acc-danger-btn, .app-root .acc-logout-btn, .app-root .usage-retry,
+.app-root .mt-menu-item, .app-root .tools-item, .app-root .vs-btn {
+  border-radius: var(--r-md);
+}
+.app-root .md-menu, .app-root .tools-menu, .app-root .mt-menu { border-radius: var(--r-lg); border-color: var(--edge-strong); }
+.app-root .settings-panel { border-radius: 14px; }
+.app-root .preview-modal, .app-root .eincm-dialog, .app-root .vault-dialog { border-radius: 14px; }
+/* chips, badges and pills KEEP their round shape on purpose */
+
+/* ---------- Input bar: glow only on focus / hover ---------- */
+.app-root .input-shell {
+  border-radius: var(--r-lg);
+  border-color: var(--edge);
+  box-shadow: none;
+}
+.app-root .input-shell:focus-within {
+  border-color: rgba(255, 46, 46, 0.5);
+  box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 36px) rgba(255, 46, 46, calc(var(--glow-intensity, 0.5) * 0.14));
+}
+.app-root .send-btn { border-radius: var(--r-md); box-shadow: none; }
+.app-root .send-btn:hover {
+  box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 22px) rgba(255, 46, 46, calc(var(--glow-intensity, 0.5) * 0.7));
+}
+.app-root .attach-btn { border-radius: var(--r-md); border-color: var(--edge); }
+
+/* ---------- Small monospace micro-labels ---------- */
+.app-root .bx-section-label, .app-root .usage-section-label, .app-root .hs-section-label,
+.app-root .search-card-label, .app-root .search-sources-label, .app-root .sg-label,
+.app-root .acc-section-title, .app-root .preview-modal-slide-num {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.app-root .provider-tag, .app-root .md-tag, .app-root .hs-item-badge, .app-root .bx-badge,
+.app-root .gen-card-meta, .app-root .doc-info-meta, .app-root .bx-row-meta {
+  font-family: var(--mono); letter-spacing: 0.04em;
+}
+
+/* ---------- Desktop only: slimmer rail buttons (phone buttons stay thumb-sized) ---------- */
+@media (min-width: 721px) {
+  .app-root .history-dot { width: 34px; height: 34px; font-size: 14px; }
+  .app-root .history-logo { width: 40px; height: 40px; font-size: 15px; margin-bottom: 26px; }
+  .app-root .history-items { gap: 12px; }
+  .app-root .attach-btn, .app-root .send-btn { width: 34px; height: 34px; }
+  .app-root .history-dot.active { box-shadow: 0 0 14px rgba(255, 46, 46, 0.35); }
+}
