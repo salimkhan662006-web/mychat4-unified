@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { VenetianMask, MessageSquare, Pin, Trash2, X, Check } from "lucide-react";
+import { VenetianMask, MessageSquare, Pin, Trash2, X, Check, Plus, Package, Download } from "lucide-react";
 import {
   listConversations,
   updateConversation,
@@ -23,6 +23,10 @@ export default function HistorySidebar({
   onVaultUnlock,
   onVaultLock,
   onVaultErase,
+  showTools,
+  onOpenBoxes,
+  importFileRef,
+  onImportFile,
 }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -110,13 +114,26 @@ export default function HistorySidebar({
           <div className="hs-close" onClick={onClose}><Icon icon={X} size={14} /></div>
         </div>
 
-        <div className="hs-actions">
+        <div className={`hs-actions ${showTools ? "tools4" : ""}`}>
           <div className="hs-action-btn primary" onClick={onNewChat}>
-            + New chat
+            <Icon icon={Plus} size={showTools ? 18 : 14} className={showTools ? "" : "ico-inline"} />
+            New chat
           </div>
           <div className="hs-action-btn ghost" onClick={onStartIncognito}>
-            <Icon icon={VenetianMask} size={14} className="ico-inline" />Incognito
+            <Icon icon={VenetianMask} size={showTools ? 18 : 14} className={showTools ? "" : "ico-inline"} />
+            Incognito
           </div>
+          {showTools && (
+            <>
+              <div className="hs-action-btn ghost" onClick={onOpenBoxes}>
+                <Icon icon={Package} size={18} />Boxes
+              </div>
+              <label className="hs-action-btn ghost">
+                <Icon icon={Download} size={18} />Import
+                <input ref={importFileRef} type="file" accept=".mchat,.txt" onChange={onImportFile} style={{ display: "none" }} />
+              </label>
+            </>
+          )}
         </div>
 
         

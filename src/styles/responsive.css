@@ -27,7 +27,7 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   .msg-avatar { width: 24px; height: 24px; }
   .ai-response-stack { max-width: calc(100% - 34px); min-width: 0; }
   .msg-row.user .msg-bubble { max-width: 88%; }
-  .msg-bubble { overflow-wrap: anywhere; }
+  .msg-bubble { overflow-wrap: break-word; word-break: normal; }
   .search-card, .gen-card, .doc-inline-card, .sg-card { max-width: 100%; min-width: 0; }
   .sg-wrap { margin-left: 34px; }
 

@@ -6,6 +6,7 @@ import SearchCard from "./SearchCard";
 import DocCard from "./DocCard";
 import GenCard from "./GenCard";
 import SuggestChip from "./SuggestChip";
+import HeroMark from "./HeroMark";
 
 // The newest real AI reply (not a greeting/status line).
 function lastAssistantTextId(messages) {
@@ -36,6 +37,7 @@ export default function MessageList({
   onExpandPreview,
   onDownload,
   boxId,
+  hero,
 }) {
   const bottomRef = useRef(null);
 
@@ -44,6 +46,20 @@ export default function MessageList({
   }, [messages, displayed, busy]);
 
   const suggestTargetId = boxId ? lastAssistantTextId(messages) : null;
+  // Phone only: an empty new chat shows the big wordmark instead of a greeting bubble.
+  const heroText =
+    hero && !busy && messages.length > 0 && messages.every((m) => m.isGreeting && !m.isStatus)
+      ? messages[messages.length - 1].content
+      : null;
+
+  if (heroText) {
+    return (
+      <div className="messages">
+        <HeroMark text={heroText} />
+        {importError && <div className="error-box">Import failed: {importError}</div>}
+      </div>
+    );
+  }
 
   return (
     <div className="messages">

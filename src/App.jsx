@@ -21,6 +21,7 @@ import { buildCompressedSaveFile, downloadSaveFile, parseCompressedSaveFile } fr
 import { messageFromRow } from "./messageMapping";
 import SmokeBackground from "./components/SmokeBackground";
 import HistoryRail from "./components/HistoryRail";
+import MobileTopBar from "./components/MobileTopBar";
 import TopBar from "./components/TopBar";
 import MessageList from "./components/MessageList";
 import ChatInput from "./components/ChatInput";
@@ -29,14 +30,15 @@ import EincmDialog from "./components/EincmDialog";
 import BoxPanel from "./components/BoxPanel";
 import VaultDialog from "./components/VaultDialog";
 import { useVault } from "./useVault";
+import { useIsMobile } from "./useIsMobile";
 
 let idCounter = 0;
 const nextId = () => `m-${Date.now()}-${idCounter++}`;
 
 // Greeting / status messages are marked isGreeting so they are never sent
 // to the AI as part of the conversation and never saved in .mchat files.
-function systemMessage(content) {
-  return { id: nextId(), role: "assistant", type: "text", content, isGreeting: true };
+function systemMessage(content, extra = {}) {
+  return { id: nextId(), role: "assistant", type: "text", content, isGreeting: true, ...extra };
 }
 
 function firstNameOf(user) {
@@ -53,6 +55,7 @@ export default function App() {
   const { user, loading: authLoading } = useAuth();
   // Encrypted Incognito Vault (on-device only). Locks itself when the account changes.
   const vault = useVault(user?.id);
+  const isMobile = useIsMobile();
 
   // messages: { id, role: "user"|"assistant", type: "text"|"doc-card"|"search-card"|"doc-gen-card", content, ... }
   const [messages, setMessages] = useState(() => [
@@ -364,7 +367,7 @@ export default function App() {
     setConversationId(id);
     // Show a neutral placeholder right away so the previous chat's messages are
     // never visible (or typed into) while the selected chat is still loading.
-    setMessages([systemMessage("Loading this chat…")]);
+    setMessages([systemMessage("Loading this chat…", { isStatus: true })]);
 
     try {
       const msgs = await getConversationMessages(id);
@@ -376,7 +379,7 @@ export default function App() {
       setMessages(msgs.map(messageFromRow));
     } catch (err) {
       if (seq !== loadSeqRef.current) return;
-      setMessages([systemMessage("Couldn't load this chat. Please try again.")]);
+      setMessages([systemMessage("Couldn't load this chat. Please try again.", { isStatus: true })]);
       setErrorMsg(`Could not load chat: ${err.message}`);
     }
   }
@@ -663,28 +666,50 @@ export default function App() {
       <SmokeBackground />
 
       <div className="app-shell">
-        <HistoryRail
-          isIncognito={isIncognito}
-          importFileRef={importFileRef}
-          onOpenHistory={() => setHistoryOpen(true)}
-          onNewChat={startNewChat}
-          onStartIncognito={startIncognitoChat}
-          onImportFile={handleImportFile}
-          onOpenSettings={openSettings}
-          onOpenBoxes={() => setBoxPanelOpen(true)}
-        />
+        {!isMobile && (
+          <HistoryRail
+            isIncognito={isIncognito}
+            importFileRef={importFileRef}
+            onOpenHistory={() => setHistoryOpen(true)}
+            onNewChat={startNewChat}
+            onStartIncognito={startIncognitoChat}
+            onImportFile={handleImportFile}
+            onOpenSettings={openSettings}
+            onOpenBoxes={() => setBoxPanelOpen(true)}
+          />
+        )}
 
         <div className="main">
-          <TopBar
-            isIncognito={isIncognito}
-            onEndIncognito={() => setEincmDialogOpen(true)}
-            boxAttached={!!effectiveBoxId}
-            onDetachBox={() => handleAttachBox(null)}
-            activeDoc={activeDoc}
-            onClearDoc={clearActiveDoc}
-          />
+          {isMobile ? (
+            <MobileTopBar
+              user={user}
+              isIncognito={isIncognito}
+              onToggleIncognito={() => (isIncognito ? setEincmDialogOpen(true) : startIncognitoChat())}
+              onOpenHistory={() => setHistoryOpen(true)}
+              onOpenSettings={openSettings}
+              boxAttached={!!effectiveBoxId}
+              onDetachBox={() => handleAttachBox(null)}
+              activeDoc={activeDoc}
+              onClearDoc={clearActiveDoc}
+              models={models}
+              frontierInfo={frontierInfo}
+              selectedModel={selectedModel}
+              onSelectModel={handleSelectModel}
+              modelDisabled={loading || searching || generating}
+            />
+          ) : (
+            <TopBar
+              isIncognito={isIncognito}
+              onEndIncognito={() => setEincmDialogOpen(true)}
+              boxAttached={!!effectiveBoxId}
+              onDetachBox={() => handleAttachBox(null)}
+              activeDoc={activeDoc}
+              onClearDoc={clearActiveDoc}
+            />
+          )}
 
           <MessageList
+            hero={isMobile}
             messages={messages}
             streamingMsgId={streamingMsgId}
             displayed={displayed}
@@ -759,6 +784,10 @@ export default function App() {
         onVaultUnlock={() => vault.openDialog("unlock")}
         onVaultLock={handleVaultLock}
         onVaultErase={() => vault.openDialog("erase")}
+        showTools={isMobile}
+        onOpenBoxes={() => { setHistoryOpen(false); setBoxPanelOpen(true); }}
+        importFileRef={importFileRef}
+        onImportFile={handleImportFile}
       />
 
       {vault.dialogMode && (
