@@ -1,0 +1,73 @@
+/* Phone layout (screens 720px wide or less). Imported LAST so it wins. */
+html, body { max-width: 100vw; overflow-x: hidden; }
+
+@media (max-width: 720px) {
+  /* Real visible height on phones (100vh includes the browser bar) */
+  .app-root, .app-shell { height: 100dvh; width: 100%; max-width: 100vw; }
+
+  /* Let flex children shrink instead of forcing the page wider than the screen */
+  .app-shell, .main, .messages, .input-zone, .input-shell { min-width: 0; }
+  .messages { min-height: 0; }
+
+  /* Slim rail */
+  .history-rail { width: 54px; padding: 14px 0 12px; }
+  .history-curve { left: -200px; width: 254px; border-radius: 0 120px 120px 0; }
+  .history-logo { width: 36px; height: 36px; font-size: 14px; margin-bottom: 16px; }
+  .history-items { gap: 10px; }
+  .history-rail-bottom { gap: 8px; }
+  .history-dot { width: 36px; height: 36px; }
+  .history-dot:hover { transform: none; }
+
+  /* Top bar and messages */
+  .top-bar { padding: 14px 14px 10px; }
+  .top-bar-right { flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .incognito-badge, .active-doc-pill { max-width: 62vw; font-size: 11px; }
+  .messages { padding: 10px 12px; }
+  .msg-row { gap: 10px; }
+  .msg-avatar { width: 24px; height: 24px; }
+  .ai-response-stack { max-width: calc(100% - 34px); min-width: 0; }
+  .msg-row.user .msg-bubble { max-width: 88%; }
+  .msg-bubble { overflow-wrap: anywhere; }
+  .search-card, .gen-card, .doc-inline-card, .sg-card { max-width: 100%; min-width: 0; }
+  .sg-wrap { margin-left: 34px; }
+
+  /* Input: text box on its own row, tool buttons and send underneath */
+  .input-zone { padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .input-shell { flex-wrap: wrap; gap: 8px; padding: 10px; border-radius: 14px; }
+  .chat-input { order: -1; flex: 1 1 100%; min-height: 40px; font-size: 16px; } /* 16px stops iOS zooming in */
+  .attach-btn, .send-btn { width: 38px; height: 38px; }
+  .send-btn { margin-left: auto; }
+  .md-wrap { margin-bottom: 6px; }
+  .attach-indicator { flex-wrap: wrap; font-size: 11.5px; }
+
+  /* Panels and dialogs */
+  .bx-panel { width: 100vw; }
+  .history-sidebar-overlay .history-sidebar { width: min(340px, 88vw); }
+  .preview-modal-overlay { padding: 10px; }
+  .vault-overlay .vault-dialog { padding: 20px; }
+
+  /* Settings: full screen, tabs in a row along the top */
+  .settings-overlay .settings-panel {
+    flex-direction: column; width: 100vw; max-width: 100vw;
+    height: 100dvh; max-height: 100dvh; border-radius: 0; border: none;
+  }
+  .settings-overlay .settings-sidebar {
+    width: auto; flex-shrink: 0; display: flex; gap: 4px; overflow-x: auto;
+    padding: 10px; border-right: none; border-bottom: 1px solid rgba(255,46,46,0.12);
+  }
+  .settings-overlay .settings-title { display: none; }
+  .settings-overlay .settings-nav-item { white-space: nowrap; margin-bottom: 0; padding: 8px 12px; }
+  .settings-overlay .settings-content { min-height: 0; }
+  .settings-overlay .settings-body { padding: 16px 14px; }
+  .settings-overlay .usage-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .settings-overlay .usage-provider-row { flex-wrap: wrap; }
+  .settings-overlay .usage-provider-name { width: auto; }
+  .settings-overlay .usage-provider-bar-track { flex: 1 1 100%; order: 3; }
+  .settings-overlay .usage-provider-stats { width: auto; margin-left: auto; }
+  .settings-overlay .acc-confirm-row { flex-direction: column; }
+}
+
+/* Touch screens have no hover, so the pin/delete buttons must always show */
+@media (hover: none) {
+  .history-sidebar-overlay .hs-item-actions { opacity: 1; }
+}
