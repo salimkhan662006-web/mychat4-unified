@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 800 600">
+  <defs>
+    <!-- Deep Cyber Ambient Background -->
+    <radialGradient id="bg-glow" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#1a0205" />
+      <stop offset="60%" stop-color="#080002" />
+      <stop offset="100%" stop-color="#020001" />
+    </radialGradient>
+
+    <!-- Ultra-Polished Carbon/Obsidian Scale Face -->
+    <linearGradient id="polished-plate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d2e36" />
+      <stop offset="25%" stop-color="#181920" />
+      <stop offset="50%" stop-color="#0a0a0d" />
+      <stop offset="85%" stop-color="#020203" />
+      <stop offset="100%" stop-color="#000000" />
+    </linearGradient>
+
+    <!-- Angular Facet Shading (Gives Sharp Chiseled 3D Edges) -->
+    <linearGradient id="facet-left" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.6" />
+    </linearGradient>
+
+    <linearGradient id="facet-right" x1="100%" y1="0%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff1a40" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.7" />
+    </linearGradient>
+
+    <!-- Razor-Sharp Chrome/Red Specular Highlight -->
+    <linearGradient id="sharp-edge" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+      <stop offset="30%" stop-color="#ff3355" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#ff0022" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- High-Intensity Focused Neon Core Blur -->
+    <filter id="laser-core" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1" result="blur1" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Broad Plasma Radiance -->
+    <filter id="plasma-halo" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+      </feMerge>
+    </filter>
+
+    <!-- Sharp, Aggressive Dragon/Cyber Scale Geometry -->
+    <!-- Grid Dimensions: Width=80, Height=120 -->
+    <g id="angular-scale">
+      <!-- High-Glow Outer Seam Line -->
+      <polygon points="40,0 80,25 80,75 40,120 0,75 0,25" fill="url(#polished-plate)" stroke="#ff0033" stroke-width="2.5" stroke-linejoin="miter" stroke-miterlimit="10" filter="url(#laser-core)" />
+
+      <!-- Chiseled Left Angular Facet -->
+      <polygon points="40,0 0,25 0,75 40,120 40,60" fill="url(#facet-left)" />
+
+      <!-- Chiseled Right Angular Facet -->
+      <polygon points="40,0 80,25 80,75 40,120 40,60" fill="url(#facet-right)" />
+
+      <!-- Inner Armor Bevel (Razor Chrome Edge) -->
+      <polygon points="40,6 74,27 74,71 40,110 6,71 6,27" fill="none" stroke="url(#sharp-edge)" stroke-width="1.2" stroke-linejoin="miter" stroke-miterlimit="10" />
+
+      <!-- Aggressive Central Spine & Circuit Insets -->
+      <path d="M 40,0 L 40,120 M 40,35 L 20,50 M 40,35 L 60,50 M 40,75 L 20,90 M 40,75 L 60,90" fill="none" stroke="#ff0033" stroke-width="1.2" stroke-linecap="square" opacity="0.55" filter="url(#laser-core)" />
+      
+      <!-- Core Node Reflection Spot -->
+      <polygon points="40,30 45,35 40,40 35,35" fill="#ffffff" opacity="0.7" />
+    </g>
+
+    <!-- Seamless Tiling Pattern -->
+    <pattern id="angular-scale-pattern" width="80" height="120" patternUnits="userSpaceOnUse">
+      <rect width="80" height="120" fill="#040001" />
+
+      <!-- Base Grid -->
+      <use href="#angular-scale" x="0" y="0" />
+      <use href="#angular-scale" x="0" y="120" />
+
+      <!-- Interlocking Offset Grid (X offset: 40, Y offset: 60) -->
+      <use href="#angular-scale" x="40" y="60" />
+      <use href="#angular-scale" x="-40" y="60" />
+      <use href="#angular-scale" x="40" y="-60" />
+    </pattern>
+
+    <!-- Cinematic Vignette with Crimson Rim Lighting -->
+    <radialGradient id="cinematic-vignette" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#ff0033" stop-opacity="0.12" />
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.95" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="100%" height="100%" fill="url(#bg-glow)" />
+
+  <!-- Layer 1: Ambient Plasma Halo (Under-Glow) -->
+  <rect width="100%" height="100%" fill="url(#angular-scale-pattern)" filter="url(#plasma-halo)" opacity="0.65" />
+
+  <!-- Layer 2: Ultra-Crisp Sharp Foreground Pattern -->
+  <rect width="100%" height="100%" fill="url(#angular-scale-pattern)" />
+
+  <!-- Layer 3: Cinematic Vignette Overlay -->
+  <rect width="100%" height="100%" fill="url(#cinematic-vignette)" style="mix-blend-mode: multiply;" />
+  <rect width="100%" height="100%" fill="url(#cinematic-vignette)" opacity="0.4" />
+</svg>

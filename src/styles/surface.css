@@ -19,15 +19,25 @@
   --scales: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16' viewBox='0 0 28 16'%3E%3Cg fill='none' stroke='%23FF2E2E' stroke-width='0.6' stroke-linecap='square'%3E%3Cpath d='M0 0L14 8L28 0M0 16L14 8L28 16' stroke-opacity='0.13'/%3E%3Cpath d='M14 8V3M0 16v-5M28 16v-5' stroke-opacity='0.08'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* ---------- Chat area: scales on the smoke-free diagonal only ---------- */
-.app-shell::before {
+/* ---------- Scale wall: her angular armour-plate reference, behind the whole UI ---------- */
+.app-root::before {
   content: "";
-  position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background-image: var(--scales);
-  background-size: 28px 16px;
-  -webkit-mask-image: linear-gradient(135deg, transparent 10%, #000 38%, #000 62%, transparent 90%);
-  mask-image: linear-gradient(135deg, transparent 10%, #000 38%, #000 62%, transparent 90%);
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;   /* above the smoke (0), below the app (2) */
+  background-image: url("/scale-wall.svg");
+  background-size: 80px 120px;
+  opacity: var(--wall-opacity, 0.5);
+  /* her reference is bright in the middle and falls to black at the edges */
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.08) 100%);
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.08) 100%);
+  /* soft red halo around the seams, like the glow layer in her file */
+  filter: drop-shadow(0 0 4px rgba(255, 0, 51, 0.35));
 }
+@media (max-width: 720px) {
+  .app-root::before { background-size: 56px 84px; }   /* same shape, smaller on phones */
+}
+
+/* keep the empty-chat wordmark readable on top of the busy centre */
+.app-root .hero-mark, .app-root .hero-sub { text-shadow: 0 0 22px #000, 0 0 8px #000; }
 
 /* ---------- Panels: pattern strong at the top, faded out toward the bottom ---------- */
 .app-root .history-sidebar,
