@@ -163,3 +163,18 @@
   font-size: 11.5px; color: #FF9E9E; padding: 8px 12px; border-radius: 8px;
   background: rgba(255,46,46,0.08); border: 1px solid rgba(255,46,46,0.3); max-width: 520px;
 }
+
+/* IM-1: Lines section */
+.bx-select {
+  width: 100%; margin-bottom: 8px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,46,46,0.22); border-radius: 10px; padding: 10px 12px;
+  color: #EDE2DE; font-size: 12.5px; font-family: inherit; outline: none;
+  transition: border-color 0.2s;
+}
+.bx-select:focus { border-color: rgba(255,46,46,0.5); }
+.bx-select option { background: #0a0505; color: #EDE2DE; }
+.app-root .bx-select { border-radius: var(--r-md); }
+.bx-line-form { margin-top: 10px; }
+@media (max-width: 720px) {
+  .bx-select, .bx-line-form .bx-input { font-size: 16px; } /* 16px stops iOS zooming in */
+}

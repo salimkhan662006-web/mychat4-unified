@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, X, Package, Check } from "lucide-react";
 import BoxFiles from "./BoxFiles";
+import BoxLines from "./BoxLines";
 import Icon from "./Icon";
 import {
   listBoxes,
@@ -41,6 +42,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
   const [noteBusy, setNoteBusy] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [filesVersion, setFilesVersion] = useState(0); // bumps when a file is added or removed
 
   useEffect(() => {
     if (open) {
@@ -361,7 +363,8 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                 <span className="bx-counter-inline">{noteDraft.length} / {MAX_NOTE}</span>
               </div>
 
-              <BoxFiles boxId={detail.box.id} onError={setError} />
+              <BoxFiles boxId={detail.box.id} onError={setError} onChanged={() => setFilesVersion((v) => v + 1)} />
+              <BoxLines boxId={detail.box.id} version={filesVersion} onError={setError} />
               <div className="bx-danger-zone">
                 <button className="bx-btn danger" onClick={handleDeleteBox}>Delete this box</button>
               </div>

@@ -21,7 +21,7 @@ function formatChars(n) {
   return `${n} chars`;
 }
 
-export default function BoxFiles({ boxId, onError }) {
+export default function BoxFiles({ boxId, onError, onChanged }) {
   const [files, setFiles] = useState([]);
   const [limits, setLimits] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +74,7 @@ export default function BoxFiles({ boxId, onError }) {
     try {
       await uploadBoxFile(boxId, file);
       await refresh();
+      if (onChanged) onChanged();
     } catch (err) {
       onError(err.message);
     } finally {
@@ -88,6 +89,7 @@ export default function BoxFiles({ boxId, onError }) {
     try {
       await deleteBoxFile(boxId, file.id);
       await refresh();
+      if (onChanged) onChanged();
     } catch (err) {
       onError(err.message);
     }

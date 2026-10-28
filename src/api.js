@@ -398,6 +398,12 @@ export const listBoxFiles = (boxId) =>
   boxRequest("GET", `/boxes/${boxId}/files`, null, "Could not load files");
 export const deleteBoxFile = (boxId, fileId) =>
   boxRequest("DELETE", `/boxes/${boxId}/files/${fileId}`, null, "Could not remove file");
+export const listBoxLines = (boxId) =>
+  boxRequest("GET", `/boxes/${boxId}/lines`, null, "Could not load lines");
+export const createBoxLine = (boxId, aId, bId, label = "") =>
+  boxRequest("POST", `/boxes/${boxId}/lines`, { a_id: aId, b_id: bId, label }, "Could not create line");
+export const deleteBoxLine = (boxId, lineId) =>
+  boxRequest("DELETE", `/boxes/${boxId}/lines/${lineId}`, null, "Could not delete line");
 export async function uploadBoxFile(boxId, file) {
   const formData = new FormData();
   formData.append("file", file);
