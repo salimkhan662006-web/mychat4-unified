@@ -1,16 +1,14 @@
-// Lines section of the Box panel (IM-1: AI Intermetrolite).
-// A line connects two files of this box. Only you draw it. When a question matches
+// Lines section of the Workforce page (IM-1: AI Intermetrolite).
+// A line connects two files of this workforce. Only you draw it. When a question matches
 // one of the two files, the AI may also read the best-matching parts of the other.
+// The graph opens as its own full page (BoxGraphView).
 import { useState, useEffect } from "react";
-import { lazy, Suspense } from "react";
 import { Link2 } from "lucide-react";
-import { useIsMobile } from "../useIsMobile";
 import { listBoxFiles, listBoxLines, createBoxLine, deleteBoxLine } from "../api";
+import { useIsMobile } from "../useIsMobile";
 import Icon from "./Icon";
 
-const BoxGraph = lazy(() => import("./BoxGraph"));
-
-export default function BoxLines({ boxId, version, onError }) {
+export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
   const [files, setFiles] = useState([]);
   const [lines, setLines] = useState([]);
   const [limits, setLimits] = useState(null);
@@ -20,8 +18,6 @@ export default function BoxLines({ boxId, version, onError }) {
   const [bId, setBId] = useState("");
   const [label, setLabel] = useState("");
   const isMobile = useIsMobile();
-  const [view, setView] = useState("list"); // "list" | "graph"
-  const showGraph = !isMobile && view === "graph";
 
   // Loads on open, and again whenever a file is added or removed (version changes).
   useEffect(() => {
@@ -97,17 +93,10 @@ export default function BoxLines({ boxId, version, onError }) {
         are not sent to the AI.
       </div>
 
-      {!isMobile && !loading && files.length >= 2 && (
-        <div className="bx-view-switch">
-          <span className={`bx-view-tab ${view === "list" ? "on" : ""}`} onClick={() => setView("list")}>List</span>
-          <span className={`bx-view-tab ${view === "graph" ? "on" : ""}`} onClick={() => setView("graph")}>Graph</span>
+      {!isMobile && !loading && files.length >= 2 && onOpenGraph && (
+        <div className="bx-save-row" style={{ marginBottom: 10 }}>
+          <button className="bx-btn primary small" onClick={onOpenGraph}>Open graph</button>
         </div>
-      )}
-
-      {showGraph && files.length >= 2 && (
-        <Suspense fallback={<div className="bx-muted">Loading graph…</div>}>
-          <BoxGraph files={files} lines={lines} />
-        </Suspense>
       )}
 
       {loading && <div className="bx-muted">Loading lines…</div>}
@@ -116,7 +105,7 @@ export default function BoxLines({ boxId, version, onError }) {
       )}
       {!loading && files.length >= 2 && lines.length === 0 && <div className="bx-muted">No lines yet.</div>}
 
-      {!showGraph && lines.map((l) => (
+      {lines.map((l) => (
         <div key={l.id} className="bx-row" style={{ cursor: "default" }}>
           <span className="bx-row-icon"><Icon icon={Link2} size={16} /></span>
           <div className="bx-row-text">

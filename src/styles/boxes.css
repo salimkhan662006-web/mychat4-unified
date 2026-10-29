@@ -165,19 +165,6 @@
   .bx-select, .bx-line-form .bx-input { font-size: 16px; } /* 16px stops iOS zooming in */
 }
 
-/* IM-2: graph view */
-.bx-view-switch { display: flex; gap: 6px; margin: 4px 0 10px; }
-.bx-view-tab {
-  font-size: 11px; padding: 5px 14px; border-radius: 20px; cursor: pointer;
-  color: #8A7570; border: 1px solid rgba(255,46,46,0.2); background: rgba(255,255,255,0.02);
-}
-.bx-view-tab.on { color: #FFB3B0; border-color: #FF2E2E; background: rgba(255,46,46,0.16); }
-.bx-graph {
-  width: 100%; height: 340px; margin-bottom: 12px; overflow: hidden;
-  border: 1px solid rgba(255,46,46,0.2); border-radius: 10px; background: #0a0506;
-}
-.bx-panel.expanded .bx-graph { height: 460px; }
-
 /* Workforce page: takes over the main area (replaces the chat while open) */
 .main.wf-open { max-width: none; }
 .main.wf-open > *:not(.wf-page) { display: none; }
@@ -236,4 +223,18 @@
 }
 @media (max-width: 720px) {
   .wf-composer-input { font-size: 16px; } /* 16px stops iOS zooming in */
+}
+
+/* Workforce graph page (Step 3) */
+.wf-graph-stage { position: relative; flex: 1; min-height: 0; background: #0a0506; }
+.bx-graph-wrap { position: absolute; inset: 0; }
+.bx-graph-host { position: absolute; inset: 0; overflow: hidden; }
+.bx-graph-ui {
+  position: absolute; top: 14px; right: 18px; z-index: 2;
+  display: flex; align-items: center; gap: 10px;
+}
+.bx-graph-count { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: #8A7570; text-transform: uppercase; }
+.bx-graph-hint {
+  position: absolute; left: 18px; bottom: 14px; z-index: 2; pointer-events: none;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; color: #5A4844;
 }

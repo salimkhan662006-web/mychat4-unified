@@ -2,10 +2,11 @@
 // Projects-style page: a chat input and recent chats on the left, cards for
 // Instructions / Notes / Files / Lines on the right.
 // (File and component names keep "Box" on purpose: only the words people see say Workforce.)
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { ArrowLeft, X, Package, Check, ChevronDown, ChevronUp, ArrowUp, MessageSquare } from "lucide-react";
 import BoxFiles from "./BoxFiles";
 import BoxLines from "./BoxLines";
+const BoxGraphView = lazy(() => import("./BoxGraphView"));
 import Icon from "./Icon";
 import {
   listBoxes,
@@ -78,6 +79,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
   const [cards, setCards] = useState({}); // which cards are open: { instructions, notes, files, lines }
   const [chatDraft, setChatDraft] = useState("");
   const [recent, setRecent] = useState([]); // chats that used this workforce
+  const [graphOpen, setGraphOpen] = useState(false); // full-page graph view
 
   useEffect(() => {
     if (open) {
@@ -87,6 +89,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
       setDetail(null);
       setError("");
       setChatDraft("");
+      setGraphOpen(false);
     }
   }, [open]);
 
@@ -130,6 +133,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
   }
 
   function backToList() {
+    setGraphOpen(false);
     setOpenBoxId(null);
     setDetail(null);
     setError("");
@@ -239,6 +243,19 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
   }
 
   if (!open) return null;
+
+  if (graphOpen && detail) {
+    return (
+      <Suspense fallback={<section className="wf-page"><div className="bx-muted" style={{ padding: 24 }}>Loading graph…</div></section>}>
+        <BoxGraphView
+          boxId={detail.box.id}
+          title={detail.box.title}
+          onBack={() => setGraphOpen(false)}
+          onError={setError}
+        />
+      </Suspense>
+    );
+  }
 
   const dirty =
     detail &&
@@ -481,7 +498,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
                   open={!!cards.lines}
                   onToggle={() => toggleCard("lines")}
                 >
-                  <BoxLines boxId={detail.box.id} version={filesVersion} onError={setError} />
+                  <BoxLines boxId={detail.box.id} version={filesVersion} onError={setError} onOpenGraph={() => setGraphOpen(true)} />
                 </Card>
 
                 <div className="bx-danger-zone">
