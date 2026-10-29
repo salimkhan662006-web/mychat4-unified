@@ -675,7 +675,7 @@ export default function App() {
             onStartIncognito={startIncognitoChat}
             onImportFile={handleImportFile}
             onOpenSettings={openSettings}
-            onOpenBoxes={() => setBoxPanelOpen(true)}
+            onOpenBoxes={() => setBoxPanelOpen((o) => !o)}
           />
         )}
 
@@ -745,6 +745,15 @@ export default function App() {
             onClearDoc={clearActiveDoc}
           />
         </div>
+
+        <BoxPanel
+          open={boxPanelOpen}
+          onClose={() => setBoxPanelOpen(false)}
+          activeBoxId={effectiveBoxId}
+          canAttach={!isIncognito}
+          onAttach={handleAttachBox}
+          onBoxDeleted={handleBoxDeleted}
+        />
       </div>
 
       {expandedPreview && (
@@ -759,15 +768,6 @@ export default function App() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         initialSection={settingsSection}
-      />
-
-      <BoxPanel
-        open={boxPanelOpen}
-        onClose={() => setBoxPanelOpen(false)}
-        activeBoxId={effectiveBoxId}
-        canAttach={!isIncognito}
-        onAttach={handleAttachBox}
-        onBoxDeleted={handleBoxDeleted}
       />
 
       <HistorySidebar

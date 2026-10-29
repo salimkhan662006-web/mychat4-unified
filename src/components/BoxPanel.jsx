@@ -1,7 +1,7 @@
 // Box panel (right-hand drawer): list your boxes; inside one, edit its
 // Instructions and manage its Notes; attach it to the current chat.
 import { useState, useEffect } from "react";
-import { ArrowLeft, X, Package, Check } from "lucide-react";
+import { ArrowLeft, X, Package, Check, Maximize2, Minimize2 } from "lucide-react";
 import BoxFiles from "./BoxFiles";
 import BoxLines from "./BoxLines";
 import Icon from "./Icon";
@@ -43,6 +43,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [filesVersion, setFilesVersion] = useState(0); // bumps when a file is added or removed
+  const [expanded, setExpanded] = useState(false); // wide (desktop) or full height (phone)
 
   useEffect(() => {
     if (open) {
@@ -53,6 +54,23 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
       setError("");
     }
   }, [open]);
+
+  // Docked panel: no backdrop to click any more, so Escape closes it.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e) {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      const el = document.activeElement;
+      const tag = el?.tagName;
+      if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") {
+        el.blur();
+        return;
+      }
+      onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   async function refreshList() {
     setLoading(true);
@@ -192,12 +210,14 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
   const isAttached = detail && activeBoxId === detail.box.id;
 
   return (
-    <div className="bx-overlay" onClick={onClose}>
-      <div className="bx-panel" onClick={(e) => e.stopPropagation()}>
+    <aside className={`bx-panel ${expanded ? "expanded" : ""}`} aria-label="Boxes">
         <div className="bx-header">
           {openBoxId && <div className="bx-icon-btn" onClick={backToList} title="All boxes"><Icon icon={ArrowLeft} size={14} /></div>}
           <div className="bx-title">{openBoxId ? detail?.box.title || "Box" : "Boxes"}</div>
-          <div className="bx-icon-btn" onClick={onClose}><Icon icon={X} size={14} /></div>
+          <div className="bx-icon-btn" onClick={() => setExpanded((v) => !v)} title={expanded ? "Make smaller" : "Make bigger"}>
+            <Icon icon={expanded ? Minimize2 : Maximize2} size={14} />
+          </div>
+          <div className="bx-icon-btn" onClick={onClose} title="Close"><Icon icon={X} size={14} /></div>
         </div>
 
         {error && <div className="bx-error">{error}</div>}
@@ -371,7 +391,6 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
             </>
           )}
         </div>
-      </div>
-    </div>
+    </aside>
   );
 }
