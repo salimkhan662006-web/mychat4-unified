@@ -25,7 +25,7 @@ const ENDPOINT_LABELS = {
   agent: "Documents",
   search: "Web search",
   document_gen: "Slides & sheets",
-  box_suggest: "Box suggestions",
+  box_suggest: "Workforce suggestions",
 };
 const ENDPOINT_ICONS = {
   chat: MessageSquare,

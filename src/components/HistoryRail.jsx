@@ -19,7 +19,7 @@ export default function HistoryRail({
         <div className={`history-dot ${isIncognito ? "active incognito" : ""}`} title="Incognito chat" onClick={onStartIncognito}>
           <Icon icon={VenetianMask} />
         </div>
-        <div className="history-dot" title="Boxes" onClick={onOpenBoxes}><Icon icon={Package} /></div>
+        <div className="history-dot" title="Workforces" onClick={onOpenBoxes}><Icon icon={Package} /></div>
         <label className="history-dot" title="Import a saved .mchat file">
           <Icon icon={Download} />
           <input ref={importFileRef} type="file" accept=".mchat,.txt" onChange={onImportFile} style={{ display: "none" }} />

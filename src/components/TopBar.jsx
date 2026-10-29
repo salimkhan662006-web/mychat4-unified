@@ -17,8 +17,8 @@ export default function TopBar({ isIncognito, onEndIncognito, boxAttached, onDet
           </div>
         )}
         {boxAttached && (
-          <div className="active-doc-pill" title="This chat uses a box">
-            <Icon icon={Package} size={14} /> Box attached
+          <div className="active-doc-pill" title="This chat uses a workforce">
+            <Icon icon={Package} size={14} /> Workforce attached
             <span className="pill-clear" onClick={onDetachBox}><Icon icon={X} size={12} /></span>
           </div>
         )}

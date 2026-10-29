@@ -65,7 +65,7 @@ export default function SuggestChip({ boxId, userMessage, reply }) {
   return (
     <div className="sg-wrap">
       {status === "idle" && (
-        <span className="chip" onClick={handleSuggest} title="Ask the AI what is worth saving to this box">
+        <span className="chip" onClick={handleSuggest} title="Ask the AI what is worth saving to this workforce">
           <Icon icon={Lightbulb} size={13} className="ico-inline" />Suggest note
         </span>
       )}
@@ -76,7 +76,7 @@ export default function SuggestChip({ boxId, userMessage, reply }) {
 
       {status === "ready" && (
         <div className="sg-card">
-          <div className="sg-label">Save to this box?</div>
+          <div className="sg-label">Save to this workforce?</div>
           {items.map((it) => (
             <div key={it.id} className="sg-item">
               {it.editing ? (
@@ -120,7 +120,7 @@ export default function SuggestChip({ boxId, userMessage, reply }) {
       {status === "done" && (
         <div className="sg-muted">
           {savedCount > 0
-            ? `✓ Saved ${savedCount} note${savedCount === 1 ? "" : "s"} to this box.`
+            ? `✓ Saved ${savedCount} note${savedCount === 1 ? "" : "s"} to this workforce.`
             : skipped > 0
             ? "Nothing safe to save from this reply."
             : "Nothing worth saving from this reply."}

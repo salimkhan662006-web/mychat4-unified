@@ -218,6 +218,7 @@ export default function App() {
   }
 
   function startNewChat() {
+    setBoxPanelOpen(false);
     loadSeqRef.current += 1;
     setMessages([greetingFor(user, "ready when you are. Ask me anything, or attach a document.")]);
     setConversationId(null);
@@ -227,6 +228,7 @@ export default function App() {
   }
 
   function startIncognitoChat() {
+    setBoxPanelOpen(false);
     loadSeqRef.current += 1;
     const sessionId = `incognito-${nextId()}`;
     setMessages([
@@ -347,8 +349,9 @@ export default function App() {
   }
 
   async function loadConversation(id, incognito, boxId = null) {
+    setBoxPanelOpen(false);
     setHistoryOpen(false);
-       const seq = ++loadSeqRef.current;
+    const seq = ++loadSeqRef.current;
     clearActiveDoc();
     setActiveBoxId(incognito ? null : boxId);
 
@@ -598,6 +601,12 @@ export default function App() {
     }
   }
 
+  // "Start a new chat with this workforce": leave the Workforce page for a blank chat that uses it.
+  function handleUseWorkforce(boxId) {
+    startNewChat();
+    setActiveBoxId(boxId);
+  }
+
   function handleBoxDeleted(boxId) {
     if (activeBoxId === boxId) setActiveBoxId(null);
   }
@@ -675,11 +684,18 @@ export default function App() {
             onStartIncognito={startIncognitoChat}
             onImportFile={handleImportFile}
             onOpenSettings={openSettings}
-            onOpenBoxes={() => setBoxPanelOpen((o) => !o)}
+            onOpenBoxes={() => setBoxPanelOpen(true)}
           />
         )}
 
-        <div className="main">
+        <div className={`main ${boxPanelOpen ? "wf-open" : ""}`}>
+          <BoxPanel
+            open={boxPanelOpen}
+            onClose={startNewChat}
+            activeBoxId={effectiveBoxId}
+            onUse={handleUseWorkforce}
+            onBoxDeleted={handleBoxDeleted}
+          />
           {isMobile ? (
             <MobileTopBar
               user={user}
@@ -746,14 +762,6 @@ export default function App() {
           />
         </div>
 
-        <BoxPanel
-          open={boxPanelOpen}
-          onClose={() => setBoxPanelOpen(false)}
-          activeBoxId={effectiveBoxId}
-          canAttach={!isIncognito}
-          onAttach={handleAttachBox}
-          onBoxDeleted={handleBoxDeleted}
-        />
       </div>
 
       {expandedPreview && (

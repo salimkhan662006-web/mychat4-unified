@@ -70,7 +70,7 @@ export default function MobileTopBar({
         <div className="mt-pills">
           {boxAttached && (
             <div className="active-doc-pill">
-              <Icon icon={Package} size={14} /> Box attached
+              <Icon icon={Package} size={14} /> Workforce attached
               <span className="pill-clear" onClick={onDetachBox}><Icon icon={X} size={12} /></span>
             </div>
           )}

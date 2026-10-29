@@ -1,7 +1,8 @@
-// Box panel (right-hand drawer): list your boxes; inside one, edit its
-// Instructions and manage its Notes; attach it to the current chat.
+// Workforce page: takes over the main area. List your workforces; inside one, edit its
+// Instructions, Notes, Files and Lines, or start a new chat that uses it.
+// (File and component names keep "Box" on purpose: only the words people see say Workforce.)
 import { useState, useEffect } from "react";
-import { ArrowLeft, X, Package, Check, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowLeft, X, Package, Check } from "lucide-react";
 import BoxFiles from "./BoxFiles";
 import BoxLines from "./BoxLines";
 import Icon from "./Icon";
@@ -21,7 +22,7 @@ const MAX_INSTRUCTIONS = 2000;
 const MAX_NOTE = 500;
 const MAX_NOTES = 50;
 
-export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAttach, onBoxDeleted }) {
+export default function BoxPanel({ open, onClose, activeBoxId, onUse, onBoxDeleted }) {
   const [boxes, setBoxes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +44,6 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [filesVersion, setFilesVersion] = useState(0); // bumps when a file is added or removed
-  const [expanded, setExpanded] = useState(false); // wide (desktop) or full height (phone)
 
   useEffect(() => {
     if (open) {
@@ -54,23 +54,6 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
       setError("");
     }
   }, [open]);
-
-  // Docked panel: no backdrop to click any more, so Escape closes it.
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e) {
-      if (e.key !== "Escape" || e.defaultPrevented) return;
-      const el = document.activeElement;
-      const tag = el?.tagName;
-      if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") {
-        el.blur();
-        return;
-      }
-      onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
 
   async function refreshList() {
     setLoading(true);
@@ -116,7 +99,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
     setCreating(true);
     setError("");
     try {
-      const box = await createBox(newTitle.trim() || "New box", "");
+      const box = await createBox(newTitle.trim() || "New workforce", "");
       setNewTitle("");
       await openBox(box.id);
     } catch (err) {
@@ -149,7 +132,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
 
   async function handleDeleteBox() {
     if (!detail) return;
-    if (!window.confirm(`Delete box "${detail.box.title}" and all its notes? This can't be undone.`)) return;
+    if (!window.confirm(`Delete workforce "${detail.box.title}" and all its notes, files and lines? This can't be undone.`)) return;
     try {
       await deleteBox(detail.box.id);
       onBoxDeleted(detail.box.id);
@@ -207,33 +190,36 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
   const dirty =
     detail &&
     (titleDraft.trim() !== detail.box.title || instrDraft.trim() !== (detail.box.instructions || ""));
-  const isAttached = detail && activeBoxId === detail.box.id;
 
   return (
-    <aside className={`bx-panel ${expanded ? "expanded" : ""}`} aria-label="Boxes">
-        <div className="bx-header">
-          {openBoxId && <div className="bx-icon-btn" onClick={backToList} title="All boxes"><Icon icon={ArrowLeft} size={14} /></div>}
-          <div className="bx-title">{openBoxId ? detail?.box.title || "Box" : "Boxes"}</div>
-          <div className="bx-icon-btn" onClick={() => setExpanded((v) => !v)} title={expanded ? "Make smaller" : "Make bigger"}>
-            <Icon icon={expanded ? Minimize2 : Maximize2} size={14} />
+    <section className="wf-page" aria-label="Workforce">
+      <div className="bx-header">
+        {openBoxId && (
+          <div className="bx-icon-btn" onClick={backToList} title="All workforces">
+            <Icon icon={ArrowLeft} size={14} />
           </div>
-          <div className="bx-icon-btn" onClick={onClose} title="Close"><Icon icon={X} size={14} /></div>
-        </div>
+        )}
+        <div className="bx-title">{openBoxId ? detail?.box.title || "Workforce" : "Workforces"}</div>
+        <button className="bx-btn ghost small" onClick={onClose} title="Close and return to a new chat">
+          <Icon icon={X} size={13} className="ico-inline" />Close
+        </button>
+      </div>
 
-        {error && <div className="bx-error">{error}</div>}
+      {error && <div className="bx-error">{error}</div>}
 
-        <div className="bx-body">
+      <div className="bx-body">
+        <div className="wf-inner">
           {!openBoxId && (
             <>
               <div className="bx-intro">
-                A box is a project space: standing instructions plus short notes. Attach one to a chat and the AI
-                uses it. Incognito chats never use a box.
+                A workforce is a project space: standing instructions, short notes, files and lines. Start a chat
+                with one and the AI uses it. Incognito chats never use a workforce.
               </div>
 
               <div className="bx-create-row">
                 <input
                   className="bx-input"
-                  placeholder="New box name"
+                  placeholder="New workforce name"
                   value={newTitle}
                   maxLength={100}
                   onChange={(e) => setNewTitle(e.target.value)}
@@ -247,11 +233,11 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                   {creating ? "…" : "+ Create"}
                 </button>
               </div>
-              <div className="bx-counter">{boxes.length} / {MAX_BOXES} boxes</div>
+              <div className="bx-counter">{boxes.length} / {MAX_BOXES} workforces</div>
 
-              {loading && <div className="bx-muted">Loading boxes…</div>}
+              {loading && <div className="bx-muted">Loading workforces…</div>}
               {!loading && boxes.length === 0 && (
-                <div className="bx-muted">No boxes yet. Create one above.</div>
+                <div className="bx-muted">No workforces yet. Create one above.</div>
               )}
 
               {boxes.map((b) => (
@@ -264,30 +250,20 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
                       {b.note_count === 1 ? "" : "s"}
                     </div>
                   </div>
-                  {activeBoxId === b.id && <span className="bx-badge">Attached</span>}
+                  {activeBoxId === b.id && <span className="bx-badge">In use</span>}
                 </div>
               ))}
             </>
           )}
 
-          {openBoxId && detailLoading && <div className="bx-muted">Loading box…</div>}
+          {openBoxId && detailLoading && <div className="bx-muted">Loading workforce…</div>}
 
           {openBoxId && detail && (
             <>
               <div className="bx-attach-row">
-                {canAttach ? (
-                  isAttached ? (
-                    <button className="bx-btn ghost" onClick={() => onAttach(null)}>
-                      <Icon icon={Check} size={14} className="ico-inline" />Attached to this chat — detach
-                    </button>
-                  ) : (
-                    <button className="bx-btn primary" onClick={() => onAttach(detail.box.id)}>
-                      Use in this chat
-                    </button>
-                  )
-                ) : (
-                  <div className="bx-muted">Incognito chats can't use a box.</div>
-                )}
+                <button className="bx-btn primary" onClick={() => onUse(detail.box.id)}>
+                  Start a new chat with this workforce
+                </button>
               </div>
 
               <div className="bx-section-label">Name</div>
@@ -301,7 +277,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
               <div className="bx-section-label">
                 Instructions <span className="bx-counter-inline">{instrDraft.length} / {MAX_INSTRUCTIONS}</span>
               </div>
-              <div className="bx-hint">How the AI should behave in chats that use this box.</div>
+              <div className="bx-hint">How the AI should behave in chats that use this workforce.</div>
               <textarea
                 className="bx-textarea"
                 rows={6}
@@ -386,11 +362,12 @@ export default function BoxPanel({ open, onClose, activeBoxId, canAttach, onAtta
               <BoxFiles boxId={detail.box.id} onError={setError} onChanged={() => setFilesVersion((v) => v + 1)} />
               <BoxLines boxId={detail.box.id} version={filesVersion} onError={setError} />
               <div className="bx-danger-zone">
-                <button className="bx-btn danger" onClick={handleDeleteBox}>Delete this box</button>
+                <button className="bx-btn danger" onClick={handleDeleteBox}>Delete this workforce</button>
               </div>
             </>
           )}
         </div>
-    </aside>
+      </div>
+    </section>
   );
 }

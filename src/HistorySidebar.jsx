@@ -126,7 +126,7 @@ export default function HistorySidebar({
           {showTools && (
             <>
               <div className="hs-action-btn ghost" onClick={onOpenBoxes}>
-                <Icon icon={Package} size={18} />Boxes
+                <Icon icon={Package} size={18} />Workforces
               </div>
               <label className="hs-action-btn ghost">
                 <Icon icon={Download} size={18} />Import
