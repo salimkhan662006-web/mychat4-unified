@@ -1,8 +1,9 @@
-// Full-size Obsidian-style graph of a workforce (IM-2, step 3).
+// Full-size Obsidian-style graph of a workforce (IM-2, steps 3-4).
 // d3-force runs a LIVE physics simulation; Pixi.js draws it. Both load only when this mounts.
-// Mouse: wheel = zoom, drag background = pan, drag a node = move it (others follow), hover = focus.
-// Props: files [{id, filename, char_count}], lines [{id, a_id, b_id, ...}]
-import { useEffect, useRef } from "react";
+// Mouse: wheel = zoom, drag background = pan, drag a file = move it, hover = focus,
+//        click a line = select it, "Draw line" toggle (or Shift) + drag file to file = new line.
+// Props: files, lines, onCreateLine(aId, bId), onDeleteLine(lineId)
+import { useEffect, useRef, useState } from "react";
 
 // ---- Look and feel: change values here only ----
 const THEME = {
@@ -12,6 +13,7 @@ const THEME = {
   nodeLonely: 0x8a7570,   // files with no line yet
   glow: 0xff2e2e,
   line: 0xff4a4a,
+  lineSelected: 0xffd9d6,
   lineAlpha: 0.5,
   lineWidth: 1.4,
   labelColor: 0xe0d0cc,
@@ -30,10 +32,24 @@ const MAX_LABEL = 26;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const shortName = (s) => (s.length > MAX_LABEL ? s.slice(0, MAX_LABEL - 1) + "…" : s);
 
-export default function BoxGraph({ files, lines }) {
+function distToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  const t = len2 ? clamp(((px - ax) * dx + (py - ay) * dy) / len2, 0, 1) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
   const hostRef = useRef(null);
-  const S = useRef({ setData: null, fit: null, data: { files, lines } }).current;
+  const [selectedId, setSelectedId] = useState(null);
+  const [drawMode, setDrawMode] = useState(false);
+  const S = useRef({ setData: null, fit: null, select: null, cb: {}, drawMode: false, data: { files, lines } }).current;
   S.data = { files, lines };
+  S.cb = { onCreateLine, onDeleteLine };
+  S.drawMode = drawMode;
+  S.setDraw = setDrawMode;
+  S.setSel = setSelectedId;
 
   useEffect(() => {
     let disposed = false;
@@ -64,7 +80,15 @@ export default function BoxGraph({ files, lines }) {
       const world = new pixi.Container();
       const edgeG = new pixi.Graphics();
       const nodeLayer = new pixi.Container();
-      world.addChild(edgeG, nodeLayer);
+      const rubberG = new pixi.Graphics(); // the guide line while drawing
+      const edgeLabel = new pixi.Text({
+        text: "",
+        style: { fontFamily: THEME.labelFont, fontSize: 11, fill: 0xffd9d6 },
+        resolution: 2,
+      });
+      edgeLabel.anchor.set(0.5, 1);
+      edgeLabel.visible = false;
+      world.addChild(edgeG, nodeLayer, edgeLabel, rubberG);
       app.stage.addChild(world);
       app.stage.eventMode = "static";
       app.stage.hitArea = app.screen; // empty background also receives pointer events
@@ -83,9 +107,13 @@ export default function BoxGraph({ files, lines }) {
       const lastPos = new Map();
       let hoverId = null;
       let dragging = null;
+      let linking = null;
+      let linkTarget = null;
       let panning = null;
+      let selectedLineId = null;
       let userMoved = false;
       let ticks = 0;
+      let first = true;
 
       // ---- Simulation (live) ----
       const sim = d3
@@ -97,6 +125,13 @@ export default function BoxGraph({ files, lines }) {
         .force("y", d3.forceY(0).strength(0.05))
         .alphaDecay(0.03)
         .stop();
+
+      // ---- Selection ----
+      function select(id) {
+        selectedLineId = id;
+        S.setSel(id);
+        renderEdges();
+      }
 
       // ---- Drawing helpers ----
       function zoomLabelAlpha() {
@@ -118,18 +153,28 @@ export default function BoxGraph({ files, lines }) {
       function renderEdges() {
         edgeG.clear();
         const w = THEME.lineWidth / Math.sqrt(view.k);
+        let sel = null;
         links.forEach((l) => {
           const a = l.source;
           const b = l.target;
           if (typeof a !== "object" || typeof b !== "object") return;
+          const isSel = l.id === selectedLineId;
+          if (isSel) sel = l;
           const hot = hoverId && (a.id === hoverId || b.id === hoverId);
-          const dim = hoverId && !hot;
+          const dim = hoverId && !hot && !isSel;
           edgeG.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({
-            width: hot ? w * 1.8 : w,
-            color: THEME.line,
-            alpha: dim ? THEME.dimAlpha * 0.5 : hot ? 0.95 : THEME.lineAlpha,
+            width: isSel ? w * 2.4 : hot ? w * 1.8 : w,
+            color: isSel ? THEME.lineSelected : THEME.line,
+            alpha: isSel ? 1 : dim ? THEME.dimAlpha * 0.5 : hot ? 0.95 : THEME.lineAlpha,
           });
         });
+        if (sel && sel.label) {
+          edgeLabel.text = sel.label;
+          edgeLabel.position.set((sel.source.x + sel.target.x) / 2, (sel.source.y + sel.target.y) / 2 - 5);
+          edgeLabel.visible = true;
+        } else {
+          edgeLabel.visible = false;
+        }
       }
 
       function render() {
@@ -161,12 +206,48 @@ export default function BoxGraph({ files, lines }) {
         refreshFocus();
       }
 
+      // ---- Hit tests (world coordinates) ----
+      function pickLine(p) {
+        let best = null;
+        let bd = 9 / view.k;
+        links.forEach((l) => {
+          if (typeof l.source !== "object" || typeof l.target !== "object") return;
+          const d = distToSegment(p.x, p.y, l.source.x, l.source.y, l.target.x, l.target.y);
+          if (d < bd) {
+            bd = d;
+            best = l;
+          }
+        });
+        return best;
+      }
+
+      function pickNode(p, exceptId) {
+        let best = null;
+        let bd = Infinity;
+        nodes.forEach((n) => {
+          if (n.id === exceptId) return;
+          const d = Math.hypot(p.x - n.x, p.y - n.y);
+          if (d <= n.r + 12 / view.k && d < bd) {
+            bd = d;
+            best = n;
+          }
+        });
+        return best;
+      }
+
+      function setLinkTarget(id) {
+        if (id === linkTarget) return;
+        linkTarget = id;
+        objs.forEach(({ c }, nid) => c.scale.set(nid === id ? 1.3 : 1));
+      }
+
       // ---- Build (or rebuild) from the files and lines ----
       function setData() {
         const { files: fs, lines: ls } = S.data;
         nodes.forEach((n) => lastPos.set(n.id, { x: n.x, y: n.y }));
         nodeLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
         objs.clear();
+        linkTarget = null;
 
         const ids = new Set(fs.map((f) => f.id));
         const degree = {};
@@ -189,13 +270,15 @@ export default function BoxGraph({ files, lines }) {
             y: p ? p.y : Math.sin(a) * 70,
           };
         });
-        links = goodLines.map((l) => ({ id: l.id, source: l.a_id, target: l.b_id }));
+        links = goodLines.map((l) => ({ id: l.id, source: l.a_id, target: l.b_id, label: l.label || "" }));
 
         neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
         goodLines.forEach((l) => {
           neighbours.get(l.a_id).add(l.b_id);
           neighbours.get(l.b_id).add(l.a_id);
         });
+
+        if (selectedLineId && !links.some((l) => l.id === selectedLineId)) select(null);
 
         nodes.forEach((n) => {
           const lonely = n.deg === 0;
@@ -228,6 +311,10 @@ export default function BoxGraph({ files, lines }) {
           });
           c.on("pointerdown", (e) => {
             e.stopPropagation(); // keep the background from starting a pan
+            if (S.drawMode || e.shiftKey) {
+              linking = { n };
+              return;
+            }
             dragging = n;
             n.fx = n.x;
             n.fy = n.y;
@@ -240,7 +327,8 @@ export default function BoxGraph({ files, lines }) {
         sim.nodes(nodes);
         sim.force("link").links(links);
         ticks = 0;
-        sim.alpha(0.9).restart();
+        sim.alpha(first ? 0.9 : 0.4).restart();
+        first = false;
         render();
         refreshFocus();
       }
@@ -254,28 +342,56 @@ export default function BoxGraph({ files, lines }) {
         if (!userMoved) fit();
       });
 
-      // ---- Pan, drag, zoom ----
+      // ---- Pan, drag, draw, zoom ----
       app.stage.on("pointerdown", (e) => {
-        panning = { sx: e.global.x, sy: e.global.y, vx: view.x, vy: view.y };
+        panning = { sx: e.global.x, sy: e.global.y, vx: view.x, vy: view.y, moved: false };
         userMoved = true;
       });
       app.stage.on("pointermove", (e) => {
-        if (dragging) {
+        if (linking) {
+          const p = world.toLocal(e.global);
+          rubberG.clear();
+          rubberG.moveTo(linking.n.x, linking.n.y).lineTo(p.x, p.y).stroke({
+            width: 1.8 / Math.sqrt(view.k),
+            color: THEME.nodeCore,
+            alpha: 0.9,
+          });
+          const t = pickNode(p, linking.n.id);
+          setLinkTarget(t ? t.id : null);
+        } else if (dragging) {
           const p = world.toLocal(e.global);
           dragging.fx = p.x;
           dragging.fy = p.y;
         } else if (panning) {
-          view.x = panning.vx + (e.global.x - panning.sx);
-          view.y = panning.vy + (e.global.y - panning.sy);
+          const dx = e.global.x - panning.sx;
+          const dy = e.global.y - panning.sy;
+          if (Math.hypot(dx, dy) > 4) panning.moved = true;
+          view.x = panning.vx + dx;
+          view.y = panning.vy + dy;
           applyView();
         }
       });
-      function endDrag() {
+      function endDrag(e) {
+        if (linking) {
+          const from = linking.n;
+          const p = world.toLocal(e.global);
+          const t = pickNode(p, from.id);
+          linking = null;
+          rubberG.clear();
+          setLinkTarget(null);
+          if (t && S.cb.onCreateLine) S.cb.onCreateLine(from.id, t.id);
+          return;
+        }
         if (dragging) {
           dragging.fx = null;
           dragging.fy = null;
           dragging = null;
           sim.alphaTarget(0);
+        }
+        if (panning && !panning.moved) {
+          // A click on the background: select the line under it, or clear the selection.
+          const line = pickLine(world.toLocal(e.global));
+          select(line ? line.id : null);
         }
         panning = null;
       }
@@ -299,12 +415,20 @@ export default function BoxGraph({ files, lines }) {
       }
       app.canvas.addEventListener("wheel", onWheel, { passive: false });
 
+      function onKey(ev) {
+        if (ev.key !== "Escape") return;
+        select(null);
+        S.setDraw(false);
+      }
+      window.addEventListener("keydown", onKey);
+
       const resizeObs = new ResizeObserver(() => {
         if (!userMoved) fit();
       });
       resizeObs.observe(host);
 
       S.setData = setData;
+      S.select = select;
       S.fit = () => {
         userMoved = false;
         fit();
@@ -315,8 +439,10 @@ export default function BoxGraph({ files, lines }) {
         sim.stop();
         resizeObs.disconnect();
         app.canvas.removeEventListener("wheel", onWheel);
+        window.removeEventListener("keydown", onKey);
         S.setData = null;
         S.fit = null;
+        S.select = null;
         app.destroy(true, { children: true });
       };
     })().catch((err) => console.warn("Graph view failed to start:", err));
@@ -333,14 +459,39 @@ export default function BoxGraph({ files, lines }) {
   }, [files, lines]);
 
   const lineCount = lines.length;
+  const sel = selectedId ? lines.find((l) => l.id === selectedId) : null;
+
   return (
     <div className="bx-graph-wrap">
       <div ref={hostRef} className="bx-graph-host" />
       <div className="bx-graph-ui">
         <span className="bx-graph-count">{files.length} files · {lineCount} line{lineCount === 1 ? "" : "s"}</span>
+        <button
+          className={`bx-btn small ${drawMode ? "primary" : "ghost"}`}
+          onClick={() => setDrawMode((v) => !v)}
+          title="Drag from one file onto another to link them (Shift-drag does the same)"
+        >
+          {drawMode ? "Drawing…" : "Draw line"}
+        </button>
         <button className="bx-btn ghost small" onClick={() => S.fit && S.fit()}>Fit</button>
       </div>
-      <div className="bx-graph-hint">Scroll to zoom · drag the background to pan · drag a file to move it · hover to focus</div>
+
+      {sel && (
+        <div className="bx-graph-card">
+          <div className="bx-graph-card-title">{sel.a_name} ↔ {sel.b_name}</div>
+          <div className="bx-graph-card-meta">{sel.label ? sel.label : "No label"}</div>
+          <div className="bx-save-row">
+            <button className="bx-btn danger small" onClick={() => onDeleteLine && onDeleteLine(sel.id)}>Delete line</button>
+            <button className="bx-btn ghost small" onClick={() => S.select && S.select(null)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      <div className="bx-graph-hint">
+        {drawMode
+          ? "Drag from one file onto another to link them · Esc to stop"
+          : "Scroll to zoom · drag background to pan · drag a file to move it · click a line to select · Shift-drag draws a line"}
+      </div>
     </div>
   );
 }

@@ -93,9 +93,9 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
         are not sent to the AI.
       </div>
 
-      {!isMobile && !loading && files.length >= 2 && onOpenGraph && (
+      {!loading && files.length >= 2 && onOpenGraph && (
         <div className="bx-save-row" style={{ marginBottom: 10 }}>
-          <button className="bx-btn primary small" onClick={onOpenGraph}>Open graph</button>
+          <button className="bx-btn primary small" onClick={onOpenGraph}>{isMobile ? "Open map" : "Open graph"}</button>
         </div>
       )}
 
