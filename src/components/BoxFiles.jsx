@@ -84,7 +84,7 @@ export default function BoxFiles({ boxId, onError, onChanged }) {
   }
 
   async function handleDelete(file) {
-    if (!window.confirm(`Remove "${file.filename}" from this box?`)) return;
+    if (!window.confirm(`Remove "${file.filename}" from this workforce?`)) return;
     onError("");
     try {
       await deleteBoxFile(boxId, file.id);
@@ -104,7 +104,7 @@ export default function BoxFiles({ boxId, onError, onChanged }) {
         {limits && (
           <span className="bx-counter-inline">
             {limits.used_files} / {limits.max_files} files · {formatChars(limits.used_chars)} of{" "}
-            {formatChars(limits.max_chars)} used (all boxes)
+            {formatChars(limits.max_chars)} used (all workforces)
           </span>
         )}
       </div>

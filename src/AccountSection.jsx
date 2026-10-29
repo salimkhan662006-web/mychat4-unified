@@ -148,7 +148,7 @@ export default function AccountSection() {
                     <div className="acc-transparency-row">
             <span className="acc-transparency-icon"><Icon icon={Package} size={18} /></span>
             <div>
-              <div className="acc-transparency-label">Boxes (instructions, notes & files)</div>
+              <div className="acc-transparency-label">Workforces (instructions, notes & files)</div>
               <div className="acc-transparency-desc">
                 Standing instructions and short notes you write in a box, stored so they follow
                 you across devices. When you attach a box to a chat, its text is sent to the AI
@@ -202,7 +202,7 @@ export default function AccountSection() {
       <div className="acc-section danger">
         <div className="acc-section-title">Reset data</div>
         <div className="acc-danger-desc">
-          Permanently deletes all your conversations, messages, boxes, notes, files and lines, and detaches
+          Permanently deletes all your conversations, messages, workforces, notes, files and lines, and detaches
           your usage history from your account. Your account and login stay
           intact — this just wipes the slate clean.
         </div>

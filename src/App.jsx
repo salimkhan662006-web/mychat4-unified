@@ -84,6 +84,7 @@ export default function App() {
   const [searching, setSearching] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [boxPanelOpen, setBoxPanelOpen] = useState(false);
+  const [pendingText, setPendingText] = useState(null); // first message typed on the Workforce page
   const [activeBoxId, setActiveBoxId] = useState(null); // box attached to the current chat
   // Model picker (SU-2). "auto" = the normal free chain. frontierInfo = { trial_total, trial_left }.
   const [models, setModels] = useState([]);
@@ -387,8 +388,8 @@ export default function App() {
     }
   }
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(overrideText) {
+    const text = (typeof overrideText === "string" ? overrideText : input).trim();
     if (!text || loading || searching || generating) return;
 
     if (searchMode) {
@@ -601,10 +602,25 @@ export default function App() {
     }
   }
 
-  // "Start a new chat with this workforce": leave the Workforce page for a blank chat that uses it.
-  function handleUseWorkforce(boxId) {
+  // From the Workforce page: leave it for a blank chat that uses this workforce, and send the typed message.
+  function handleUseWorkforce(boxId, text) {
     startNewChat();
+    setSearchMode(false);
     setActiveBoxId(boxId);
+    if (text) setPendingText(text);
+  }
+
+  // Runs one render AFTER the state above has settled, so the message is sent with the workforce attached.
+  useEffect(() => {
+    if (!pendingText || !activeBoxId || isIncognito) return;
+    const text = pendingText;
+    setPendingText(null);
+    handleSend(text);
+  }, [pendingText, activeBoxId]);
+
+  // Opening a recent chat from the Workforce page.
+  function handleOpenWorkforceChat(chatId, boxId) {
+    loadConversation(chatId, false, boxId);
   }
 
   function handleBoxDeleted(boxId) {
@@ -694,6 +710,7 @@ export default function App() {
             onClose={startNewChat}
             activeBoxId={effectiveBoxId}
             onUse={handleUseWorkforce}
+            onOpenChat={handleOpenWorkforceChat}
             onBoxDeleted={handleBoxDeleted}
           />
           {isMobile ? (

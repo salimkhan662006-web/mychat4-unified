@@ -193,3 +193,47 @@
   .wf-page .bx-header { padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 12px; }
   .wf-page .bx-body { padding: 16px 14px calc(28px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* Workforce page, Projects-style layout (Step 2) */
+.wf-inner.wide { max-width: 1060px; }
+.wf-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.wf-left, .wf-right { min-width: 0; }
+.wf-right { display: flex; flex-direction: column; gap: 10px; }
+
+.wf-composer {
+  border: 1px solid var(--edge); border-radius: var(--r-lg);
+  background: rgba(255,255,255,0.03); padding: 12px 12px 10px 14px;
+  transition: border-color 0.2s, box-shadow 0.25s;
+}
+.wf-composer:focus-within {
+  border-color: rgba(255,46,46,0.5);
+  box-shadow: 0 0 calc(var(--glow-intensity, 0.5) * 36px) rgba(255,46,46, calc(var(--glow-intensity, 0.5) * 0.14));
+}
+.wf-composer-input {
+  width: 100%; background: transparent; border: none; outline: none; resize: none;
+  color: #EDE2DE; font-size: 14px; font-family: inherit; line-height: 1.6;
+}
+.wf-composer-input::placeholder { color: #5A4844; }
+.wf-composer-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.wf-composer-hint { font-family: var(--mono); font-size: 10px; color: #5A4844; letter-spacing: 0.04em; }
+
+.wf-card { border: 1px solid var(--edge); border-radius: var(--r-lg); background: rgba(255,255,255,0.02); }
+.wf-card.open { border-color: var(--edge-strong); }
+.wf-card-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; }
+.wf-card-head:hover { background: rgba(255,46,46,0.05); border-radius: var(--r-lg); }
+.wf-card-headtext { flex: 1; min-width: 0; }
+.wf-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: #F2E0DC; }
+.wf-card-sub {
+  font-size: 11.5px; color: #8A7570; margin-top: 3px; line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.wf-card-caret { color: #8A7570; flex-shrink: 0; }
+.wf-card-body { padding: 4px 16px 16px; border-top: 1px solid var(--edge); }
+.wf-card-body .bx-section-label:first-child { margin-top: 12px; }
+
+@media (max-width: 900px) {
+  .wf-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
+@media (max-width: 720px) {
+  .wf-composer-input { font-size: 16px; } /* 16px stops iOS zooming in */
+}
