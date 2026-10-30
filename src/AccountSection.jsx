@@ -150,12 +150,19 @@ export default function AccountSection() {
             <div>
               <div className="acc-transparency-label">Workforces (instructions, notes & files)</div>
               <div className="acc-transparency-desc">
-                Standing instructions and short notes you write in a box, stored so they follow
-                you across devices. When you attach a box to a chat, its text is sent to the AI
+                Standing instructions and short notes you write in a workforce, stored so they follow
+                you across devices. When you attach a workforce to a chat, its text is sent to the AI
                 provider along with your messages, like any other message. Obvious secrets (keys,
                 passwords, card, ID or phone numbers, emails) are blocked before saving. Incognito
-                chats never use a box.   Boxes are deleted by Reset data and Delete account. The "Suggest note" button sends the latest reply to an AI provider; nothing is saved to a box until you approve it.
-                Files you add to a box are stored as extracted text only, never the original file, and are scanned for secrets and personal numbers before saving. The parts that match your question are sent to the AI provider when the box is attached. Lines you draw between two files are stored as the two file references and an optional label. When a question matches one file, matching parts of a linked file can be sent too. Labels are never sent to the AI. Lines are blocked from carrying secrets or personal numbers, like notes.
+                chats never use a workforce. Workforces are deleted by Reset data and Delete account.
+                The "Suggest note" button sends the latest reply to an AI provider; nothing is saved to
+                a workforce until you approve it. Files you add to a workforce are stored as extracted
+                text only, never the original file, and are scanned for secrets and personal numbers
+                before saving. The parts that match your question are sent to the AI provider when the
+                workforce is attached. Lines you draw between two files are stored as the two file
+                references and an optional label. When a question matches one file, matching parts of
+                a linked file can be sent too. Labels are never sent to the AI. Lines are blocked from
+                carrying secrets or personal numbers, like notes.
               </div>
             </div>
           </div>

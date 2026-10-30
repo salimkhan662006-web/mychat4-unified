@@ -7,7 +7,7 @@ import { useAuth } from "../AuthContext";
 
 export default function MobileTopBar({
   user, isIncognito, onToggleIncognito, onOpenHistory, onOpenSettings,
-  boxAttached, onDetachBox, activeDoc, onClearDoc,
+  boxAttached, onDetachBox, onOpenBox, activeDoc, onClearDoc,
   models, frontierInfo, selectedModel, onSelectModel, modelDisabled,
 }) {
   const { signOut } = useAuth();
@@ -70,7 +70,9 @@ export default function MobileTopBar({
         <div className="mt-pills">
           {boxAttached && (
             <div className="active-doc-pill">
-              <Icon icon={Package} size={14} /> Workforce attached
+              <span className="pill-open" onClick={onOpenBox} title="Open this workforce">
+                <Icon icon={Package} size={14} /> Workforce attached
+              </span>
               <span className="pill-clear" onClick={onDetachBox}><Icon icon={X} size={12} /></span>
             </div>
           )}

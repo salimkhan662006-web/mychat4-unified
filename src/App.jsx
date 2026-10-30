@@ -85,6 +85,7 @@ export default function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [boxPanelOpen, setBoxPanelOpen] = useState(false);
   const [pendingText, setPendingText] = useState(null); // first message typed on the Workforce page
+  const [boxPanelTarget, setBoxPanelTarget] = useState(null); // workforce to open straight away (from the pill)
   const [activeBoxId, setActiveBoxId] = useState(null); // box attached to the current chat
   // Model picker (SU-2). "auto" = the normal free chain. frontierInfo = { trial_total, trial_left }.
   const [models, setModels] = useState([]);
@@ -618,6 +619,12 @@ export default function App() {
     handleSend(text);
   }, [pendingText, activeBoxId]);
 
+  // Open the Workforce page: on one workforce (boxId) or on the list (null).
+  function openWorkforce(boxId) {
+    setBoxPanelTarget(boxId || null);
+    setBoxPanelOpen(true);
+  }
+
   // Opening a recent chat from the Workforce page.
   function handleOpenWorkforceChat(chatId, boxId) {
     loadConversation(chatId, false, boxId);
@@ -700,7 +707,7 @@ export default function App() {
             onStartIncognito={startIncognitoChat}
             onImportFile={handleImportFile}
             onOpenSettings={openSettings}
-            onOpenBoxes={() => setBoxPanelOpen(true)}
+            onOpenBoxes={() => openWorkforce(null)}
           />
         )}
 
@@ -711,6 +718,8 @@ export default function App() {
             activeBoxId={effectiveBoxId}
             onUse={handleUseWorkforce}
             onOpenChat={handleOpenWorkforceChat}
+            openTo={boxPanelTarget}
+            onBackToChat={() => setBoxPanelOpen(false)}
             onBoxDeleted={handleBoxDeleted}
           />
           {isMobile ? (
@@ -722,6 +731,7 @@ export default function App() {
               onOpenSettings={openSettings}
               boxAttached={!!effectiveBoxId}
               onDetachBox={() => handleAttachBox(null)}
+              onOpenBox={() => openWorkforce(effectiveBoxId)}
               activeDoc={activeDoc}
               onClearDoc={clearActiveDoc}
               models={models}
@@ -736,6 +746,7 @@ export default function App() {
               onEndIncognito={() => setEincmDialogOpen(true)}
               boxAttached={!!effectiveBoxId}
               onDetachBox={() => handleAttachBox(null)}
+              onOpenBox={() => openWorkforce(effectiveBoxId)}
               activeDoc={activeDoc}
               onClearDoc={clearActiveDoc}
             />
@@ -810,7 +821,7 @@ export default function App() {
         onVaultLock={handleVaultLock}
         onVaultErase={() => vault.openDialog("erase")}
         showTools={isMobile}
-        onOpenBoxes={() => { setHistoryOpen(false); setBoxPanelOpen(true); }}
+        onOpenBoxes={() => { setHistoryOpen(false); openWorkforce(null); }}
         importFileRef={importFileRef}
         onImportFile={handleImportFile}
       />

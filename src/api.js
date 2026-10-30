@@ -373,14 +373,14 @@ async function boxRequest(method, path, body, errLabel) {
 }
 
 export const listModels = () => boxRequest("GET", "/models", null, "Could not load models");
-export const listBoxes = () => boxRequest("GET", "/boxes", null, "Could not load boxes");
+export const listBoxes = () => boxRequest("GET", "/boxes", null, "Could not load workforces");
 export const createBox = (title, instructions = "") =>
-  boxRequest("POST", "/boxes", { title, instructions }, "Could not create box");
-export const getBox = (boxId) => boxRequest("GET", `/boxes/${boxId}`, null, "Could not load box");
+  boxRequest("POST", "/boxes", { title, instructions }, "Could not create workforce");
+export const getBox = (boxId) => boxRequest("GET", `/boxes/${boxId}`, null, "Could not load workforce");
 export const updateBox = (boxId, updates) =>
-  boxRequest("PATCH", `/boxes/${boxId}`, updates, "Could not save box");
+  boxRequest("PATCH", `/boxes/${boxId}`, updates, "Could not save workforce");
 export const deleteBox = (boxId) =>
-  boxRequest("DELETE", `/boxes/${boxId}`, null, "Could not delete box");
+  boxRequest("DELETE", `/boxes/${boxId}`, null, "Could not delete workforce");
 export const addBoxNote = (boxId, content, source = "user") =>
   boxRequest("POST", `/boxes/${boxId}/notes`, { content, source }, "Could not add note");
 export const suggestBoxNotes = (boxId, userMessage, assistantReply) =>

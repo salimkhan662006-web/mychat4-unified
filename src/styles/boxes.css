@@ -260,3 +260,7 @@
   background: rgba(255, 46, 46, 0.06);
 }
 .bx-nb-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; color: #F2E0DC; overflow-wrap: break-word; }
+
+/* Attached-workforce pill is a button */
+.pill-open { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.pill-open:hover { color: #FFC7C4; text-decoration: underline; text-underline-offset: 3px; }

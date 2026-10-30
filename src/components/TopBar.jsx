@@ -1,9 +1,9 @@
-// Brand mark on the left; incognito badge, attached-box pill and
-// attached-document pill on the right.
+// Brand mark on the left; incognito badge, attached-workforce pill (a button that opens it)
+// and attached-document pill on the right.
 import { VenetianMask, Package, FileText, X } from "lucide-react";
 import Icon from "./Icon";
 
-export default function TopBar({ isIncognito, onEndIncognito, boxAttached, onDetachBox, activeDoc, onClearDoc }) {
+export default function TopBar({ isIncognito, onEndIncognito, boxAttached, onDetachBox, onOpenBox, activeDoc, onClearDoc }) {
   return (
     <div className="top-bar">
       <div className="brand">
@@ -18,8 +18,10 @@ export default function TopBar({ isIncognito, onEndIncognito, boxAttached, onDet
         )}
         {boxAttached && (
           <div className="active-doc-pill" title="This chat uses a workforce">
-            <Icon icon={Package} size={14} /> Workforce attached
-            <span className="pill-clear" onClick={onDetachBox}><Icon icon={X} size={12} /></span>
+            <span className="pill-open" onClick={onOpenBox} title="Open this workforce">
+              <Icon icon={Package} size={14} /> Workforce attached
+            </span>
+            <span className="pill-clear" onClick={onDetachBox} title="Detach"><Icon icon={X} size={12} /></span>
           </div>
         )}
         {activeDoc && (

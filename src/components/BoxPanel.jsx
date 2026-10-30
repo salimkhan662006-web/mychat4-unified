@@ -53,7 +53,7 @@ function Card({ title, sub, open, onToggle, children }) {
   );
 }
 
-export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat, onBoxDeleted }) {
+export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat, onBoxDeleted, openTo, onBackToChat }) {
   const [boxes, setBoxes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -84,6 +84,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
   useEffect(() => {
     if (open) {
       refreshList();
+      if (openTo) openBox(openTo);
     } else {
       setOpenBoxId(null);
       setDetail(null);
@@ -91,7 +92,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
       setChatDraft("");
       setGraphOpen(false);
     }
-  }, [open]);
+  }, [open, openTo]);
 
   async function refreshList() {
     setLoading(true);
@@ -275,8 +276,12 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
           </div>
         )}
         <div className="bx-title">{openBoxId ? detail?.box.title || "Workforce" : "Workforces"}</div>
-        <button className="bx-btn ghost small" onClick={onClose} title="Close and return to a new chat">
-          <Icon icon={X} size={13} className="ico-inline" />Close
+        <button
+          className="bx-btn ghost small"
+          onClick={openTo ? onBackToChat : onClose}
+          title={openTo ? "Return to the chat you were in" : "Close and return to a new chat"}
+        >
+          <Icon icon={openTo ? ArrowLeft : X} size={13} className="ico-inline" />{openTo ? "Back to chat" : "Close"}
         </button>
       </div>
 
