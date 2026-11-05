@@ -404,6 +404,10 @@ export const createBoxLine = (boxId, aId, bId, label = "") =>
   boxRequest("POST", `/boxes/${boxId}/lines`, { a_id: aId, b_id: bId, label }, "Could not create line");
 export const deleteBoxLine = (boxId, lineId) =>
   boxRequest("DELETE", `/boxes/${boxId}/lines/${lineId}`, null, "Could not delete line");
+export const promoteBoxLine = (boxId, lineId) =>
+  boxRequest("POST", `/boxes/${boxId}/lines/${lineId}/promote`, null, "Could not make the line yours");
+export const rescanBoxLines = (boxId) =>
+  boxRequest("POST", `/boxes/${boxId}/rescan`, null, "Could not scan the files");
 export async function uploadBoxFile(boxId, file) {
   const formData = new FormData();
   formData.append("file", file);

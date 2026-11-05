@@ -264,3 +264,9 @@
 /* Attached-workforce pill is a button */
 .pill-open { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .pill-open:hover { color: #FFC7C4; text-decoration: underline; text-underline-offset: 3px; }
+
+/* IM-3a: AI lines */
+.bx-badge.ai { background: transparent; border: 1px solid var(--ai, #FF6B6B); color: var(--ai, #FF6B6B); }
+.bx-link { white-space: nowrap; }
+.bx-link.disabled { opacity: 0.4; cursor: not-allowed; }
+.bx-scan-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
