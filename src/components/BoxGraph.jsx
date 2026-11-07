@@ -1,9 +1,13 @@
-// Full-size Obsidian-style graph of a workforce (IM-2, steps 3-4).
+// Full-size Obsidian-style graph of a workforce (IM-2, steps 3-4; AI lines added in IM-3a).
 // d3-force runs a LIVE physics simulation; Pixi.js draws it. Both load only when this mounts.
 // Mouse: wheel = zoom, drag background = pan, drag a file = move it, hover = focus,
 //        click a line = select it, "Draw line" toggle (or Shift) + drag file to file = new line.
-// Props: files, lines, onCreateLine(aId, bId), onDeleteLine(lineId)
+// Your lines are solid. AI lines (found by reading the files) are dashed, dimmer, and coloured by
+// type (imports / mentions / shared names): the colours live in ./lineKinds.js.
+// Props: files, lines, onCreateLine(aId, bId), onDeleteLine(lineId), onPromoteLine(lineId),
+//        onRescan(), scanning
 import { useEffect, useRef, useState } from "react";
+import { aiLinkType, aiColorNumber, AI_TYPE_COLORS, AI_TYPE_NAMES } from "./lineKinds";
 
 // ---- Look and feel: change values here only ----
 const THEME = {
@@ -12,10 +16,14 @@ const THEME = {
   nodeCore: 0xffb3b0,
   nodeLonely: 0x8a7570,   // files with no line yet
   glow: 0xff2e2e,
-  line: 0xff4a4a,
+  line: 0xff4a4a,         // your lines
   lineSelected: 0xffd9d6,
   lineAlpha: 0.5,
   lineWidth: 1.4,
+  aiAlpha: 0.42,          // AI lines are a little dimmer than yours
+  aiDash: 7,              // dash and gap length of AI lines, in screen pixels
+  aiGap: 5,
+  aiStrength: 0.25,       // AI lines pull files together less than yours (0.5)
   labelColor: 0xe0d0cc,
   labelSize: 12,
   labelFont: "Inter, sans-serif",
@@ -29,6 +37,7 @@ const THEME = {
 };
 
 const MAX_LABEL = 26;
+const MAX_DASHES = 400;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const shortName = (s) => (s.length > MAX_LABEL ? s.slice(0, MAX_LABEL - 1) + "…" : s);
 
@@ -40,7 +49,24 @@ function distToSegment(px, py, ax, ay, bx, by) {
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
-export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
+// Pixi has no dashed lines: add many short segments to the current path. The caller strokes it.
+function pathDashed(g, ax, ay, bx, by, dash, gap) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-6) return;
+  const step = dash + gap;
+  const n = Math.min(Math.ceil(len / step), MAX_DASHES);
+  const ux = dx / len;
+  const uy = dy / len;
+  for (let i = 0; i < n; i++) {
+    const s = i * step;
+    const e = Math.min(s + dash, len);
+    g.moveTo(ax + ux * s, ay + uy * s).lineTo(ax + ux * e, ay + uy * e);
+  }
+}
+
+export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine, onPromoteLine, onRescan, scanning }) {
   const hostRef = useRef(null);
   const [selectedId, setSelectedId] = useState(null);
   const [drawMode, setDrawMode] = useState(false);
@@ -118,7 +144,10 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
       // ---- Simulation (live) ----
       const sim = d3
         .forceSimulation()
-        .force("link", d3.forceLink([]).id((n) => n.id).distance(THEME.linkDistance).strength(0.5))
+        .force(
+          "link",
+          d3.forceLink([]).id((n) => n.id).distance(THEME.linkDistance).strength((l) => (l.ai ? THEME.aiStrength : 0.5))
+        )
         .force("charge", d3.forceManyBody().strength(THEME.repel))
         .force("collide", d3.forceCollide((n) => n.r + 18))
         .force("x", d3.forceX(0).strength(0.05))
@@ -153,6 +182,8 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
       function renderEdges() {
         edgeG.clear();
         const w = THEME.lineWidth / Math.sqrt(view.k);
+        const dash = THEME.aiDash / view.k;
+        const gap = THEME.aiGap / view.k;
         let sel = null;
         links.forEach((l) => {
           const a = l.source;
@@ -162,10 +193,12 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
           if (isSel) sel = l;
           const hot = hoverId && (a.id === hoverId || b.id === hoverId);
           const dim = hoverId && !hot && !isSel;
-          edgeG.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({
+          if (l.ai) pathDashed(edgeG, a.x, a.y, b.x, b.y, dash, gap);
+          else edgeG.moveTo(a.x, a.y).lineTo(b.x, b.y);
+          edgeG.stroke({
             width: isSel ? w * 2.4 : hot ? w * 1.8 : w,
-            color: isSel ? THEME.lineSelected : THEME.line,
-            alpha: isSel ? 1 : dim ? THEME.dimAlpha * 0.5 : hot ? 0.95 : THEME.lineAlpha,
+            color: isSel ? THEME.lineSelected : l.color,
+            alpha: isSel ? 1 : dim ? THEME.dimAlpha * 0.5 : hot ? 0.95 : l.ai ? THEME.aiAlpha : THEME.lineAlpha,
           });
         });
         if (sel && sel.label) {
@@ -270,7 +303,17 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
             y: p ? p.y : Math.sin(a) * 70,
           };
         });
-        links = goodLines.map((l) => ({ id: l.id, source: l.a_id, target: l.b_id, label: l.label || "" }));
+        links = goodLines.map((l) => {
+          const ai = l.kind === "a";
+          return {
+            id: l.id,
+            source: l.a_id,
+            target: l.b_id,
+            label: l.label || "",
+            ai,
+            color: ai ? aiColorNumber(aiLinkType(l.label)) : THEME.line,
+          };
+        });
 
         neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
         goodLines.forEach((l) => {
@@ -458,14 +501,20 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
     if (S.setData) S.setData();
   }, [files, lines]);
 
-  const lineCount = lines.length;
+  const userCount = lines.filter((l) => l.kind !== "a").length;
+  const aiCount = lines.length - userCount;
   const sel = selectedId ? lines.find((l) => l.id === selectedId) : null;
+  const selAi = !!sel && sel.kind === "a";
+  const selType = selAi ? aiLinkType(sel.label) : null;
 
   return (
     <div className="bx-graph-wrap">
       <div ref={hostRef} className="bx-graph-host" />
       <div className="bx-graph-ui">
-        <span className="bx-graph-count">{files.length} files · {lineCount} line{lineCount === 1 ? "" : "s"}</span>
+        <span className="bx-graph-count">
+          {files.length} files · {userCount} line{userCount === 1 ? "" : "s"}
+          {aiCount > 0 ? ` · ${aiCount} AI` : ""}
+        </span>
         <button
           className={`bx-btn small ${drawMode ? "primary" : "ghost"}`}
           onClick={() => setDrawMode((v) => !v)}
@@ -474,13 +523,37 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
           {drawMode ? "Drawing…" : "Draw line"}
         </button>
         <button className="bx-btn ghost small" onClick={() => S.fit && S.fit()}>Fit</button>
+        {onRescan && (
+          <button
+            className="bx-btn ghost small"
+            disabled={scanning}
+            onClick={onRescan}
+            title="Read the files again and refresh the AI lines"
+          >
+            {scanning ? "Scanning…" : "Re-scan"}
+          </button>
+        )}
       </div>
 
       {sel && (
         <div className="bx-graph-card">
           <div className="bx-graph-card-title">{sel.a_name} ↔ {sel.b_name}</div>
-          <div className="bx-graph-card-meta">{sel.label ? sel.label : "No label"}</div>
+          <div className="bx-graph-card-meta">
+            {selAi ? (
+              <>
+                <span className="bx-badge ai" style={{ "--ai": AI_TYPE_COLORS[selType] }}>AI</span>{" "}
+                {sel.label || AI_TYPE_NAMES[selType]}
+              </>
+            ) : sel.label ? (
+              sel.label
+            ) : (
+              "No label"
+            )}
+          </div>
           <div className="bx-save-row">
+            {selAi && onPromoteLine && (
+              <button className="bx-btn primary small" onClick={() => onPromoteLine(sel.id)}>Make it mine</button>
+            )}
             <button className="bx-btn danger small" onClick={() => onDeleteLine && onDeleteLine(sel.id)}>Delete line</button>
             <button className="bx-btn ghost small" onClick={() => S.select && S.select(null)}>Close</button>
           </div>
@@ -490,7 +563,7 @@ export default function BoxGraph({ files, lines, onCreateLine, onDeleteLine }) {
       <div className="bx-graph-hint">
         {drawMode
           ? "Drag from one file onto another to link them · Esc to stop"
-          : "Scroll to zoom · drag background to pan · drag a file to move it · click a line to select · Shift-drag draws a line"}
+          : "Scroll to zoom · drag background to pan · drag a file to move it · click a line to select · Shift-drag draws a line · dashed lines were found by the AI"}
       </div>
     </div>
   );
