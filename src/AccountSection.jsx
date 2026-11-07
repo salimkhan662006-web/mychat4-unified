@@ -162,7 +162,11 @@ export default function AccountSection() {
                 workforce is attached. Lines you draw between two files are stored as the two file
                 references and an optional label. When a question matches one file, matching parts of
                 a linked file can be sent too. Labels are never sent to the AI. Lines are blocked from
-                carrying secrets or personal numbers, like notes.
+                carrying secrets or personal numbers, like notes. Lines marked AI are found by the app
+                reading the stored text of your files (imports, file names and shared names), with no AI
+                call, and they are not sent to the AI in chat unless you press Make it mine. Deleting an
+                AI line remembers that pair of file references so it does not come back; that memory is
+                removed with the file, the workforce, Reset data and Delete account.
               </div>
             </div>
           </div>
