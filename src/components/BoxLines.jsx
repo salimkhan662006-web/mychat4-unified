@@ -4,7 +4,7 @@
 // (imports, file names, shared names). The AI does not follow them in chat until you press
 // "Make it mine". The graph opens as its own full page (BoxGraphView).
 import { useState, useEffect, useRef } from "react";
-import { Link2 } from "lucide-react";
+import { Link2, Layers } from "lucide-react";
 import {
   listBoxFiles,
   listBoxLines,
@@ -12,9 +12,14 @@ import {
   deleteBoxLine,
   promoteBoxLine,
   rescanBoxLines,
+  listBoxGroups,
+  createBoxGroup,
+  deleteBoxGroup,
+  promoteBoxGroup,
 } from "../api";
 import { useIsMobile } from "../useIsMobile";
 import { aiLinkType, AI_TYPE_COLORS, AI_TYPE_NAMES } from "./lineKinds";
+import { PATTERN_KINDS, groupColor, patternText } from "./groupKinds";
 import Icon from "./Icon";
 
 export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
@@ -28,6 +33,13 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
   const [aId, setAId] = useState("");
   const [bId, setBId] = useState("");
   const [label, setLabel] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [gLimits, setGLimits] = useState(null);
+  const [expanded, setExpanded] = useState(null); // group whose files are shown
+  const [gKind, setGKind] = useState("prefix");
+  const [gWord, setGWord] = useState("");
+  const [gName, setGName] = useState("");
+  const [gBusy, setGBusy] = useState(false);
   const isMobile = useIsMobile();
   const seq = useRef(0); // ignores answers from a load that has been replaced by a newer one
   const firstVersion = useRef(version);
@@ -36,12 +48,21 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
     const mine = ++seq.current;
     if (!silent) setLoading(true);
     try {
-      const [f, l] = await Promise.all([listBoxFiles(boxId), listBoxLines(boxId)]);
+      // Groups are a bonus: if that call fails the Lines card still works.
+      const [f, l, g] = await Promise.all([
+        listBoxFiles(boxId),
+        listBoxLines(boxId),
+        listBoxGroups(boxId).catch(() => null),
+      ]);
       if (mine !== seq.current) return;
       const fileList = f.files || [];
       setFiles(fileList);
       setLines(l.lines || []);
       setLimits(l.limits || null);
+      if (g) {
+        setGroups(g.groups || []);
+        setGLimits(g.limits || null);
+      }
       // forget a choice whose file no longer exists
       setAId((cur) => (fileList.some((x) => x.id === cur) ? cur : ""));
       setBId((cur) => (fileList.some((x) => x.id === cur) ? cur : ""));
@@ -125,6 +146,57 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
     }
   }
 
+  const userGroups = groups.filter((g) => g.created_by !== "a");
+  const aiGroups = groups.filter((g) => g.created_by === "a");
+  const maxGroups = gLimits?.max_groups ?? 12;
+  const maxAiGroups = gLimits?.max_a_groups ?? 8;
+  const groupsFull = userGroups.length >= maxGroups;
+  const canCreateGroup = (gKind === "tests" || !!gWord.trim()) && !gBusy && !groupsFull;
+  const kindInfo = PATTERN_KINDS.find((k) => k.id === gKind) || PATTERN_KINDS[0];
+
+  async function handleCreateGroup() {
+    if (!canCreateGroup) return;
+    onError("");
+    setGBusy(true);
+    try {
+      const g = await createBoxGroup(boxId, gKind, gKind === "tests" ? "" : gWord.trim(), gName.trim());
+      // Creating over an AI group turns that AI group into yours: replace it, don't add a second row.
+      setGroups((prev) => (prev.some((x) => x.id === g.id) ? prev.map((x) => (x.id === g.id ? g : x)) : [...prev, g]));
+      setGWord("");
+      setGName("");
+      setExpanded(g.id);
+    } catch (err) {
+      onError(err.message);
+    } finally {
+      setGBusy(false);
+    }
+  }
+
+  async function handleDeleteGroup(g) {
+    onError("");
+    try {
+      await deleteBoxGroup(boxId, g.id);
+      setGroups((prev) => prev.filter((x) => x.id !== g.id));
+      if (expanded === g.id) setExpanded(null);
+    } catch (err) {
+      onError(err.message);
+    }
+  }
+
+  async function handlePromoteGroup(g) {
+    onError("");
+    if (groupsFull) {
+      onError(`You already have ${maxGroups} groups of your own. Delete one first.`);
+      return;
+    }
+    try {
+      const mine = await promoteBoxGroup(boxId, g.id);
+      setGroups((prev) => prev.map((x) => (x.id === mine.id ? mine : x)));
+    } catch (err) {
+      onError(err.message);
+    }
+  }
+
   async function handleRescan() {
     if (scanning) return;
     onError("");
@@ -137,11 +209,16 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
         setTimeout(() => load(true), 3000);
       } else {
         await load(true);
-        setNote(
+        const gr = r.groups;
+        const parts = [
           r.added || r.removed || r.updated
             ? `AI lines: ${r.added || 0} added, ${r.removed || 0} removed.`
-            : "No changes. The AI lines are up to date."
-        );
+            : "No changes. The AI lines are up to date.",
+        ];
+        if (gr && (gr.added || gr.removed || gr.members_added || gr.members_removed)) {
+          parts.push(`Groups: ${gr.added || 0} added, ${gr.removed || 0} removed.`);
+        }
+        setNote(parts.join(" "));
       }
     } catch (err) {
       onError(err.message);
@@ -265,6 +342,112 @@ export default function BoxLines({ boxId, version, onError, onOpenGraph }) {
             {full && <span className="bx-counter-inline">Line limit reached</span>}
           </div>
         </div>
+      )}
+
+      {!loading && files.length >= 1 && (
+        <>
+          <div className="bx-section-label">
+            Groups{" "}
+            <span className="bx-counter-inline">
+              {userGroups.length} / {maxGroups} yours · {aiGroups.length} / {maxAiGroups} AI
+            </span>
+          </div>
+          <div className="bx-hint">
+            A group collects files that share a name pattern: test files, names that start with the same word,
+            or the same extension. AI groups are found by reading your file names. Groups are for you to see;
+            the AI does not follow them in chat. Names are notes for you and are not sent to the AI.
+          </div>
+
+          {groups.length === 0 && (
+            <div className="bx-muted">None yet. Add three or more files that share a pattern, or press Re-scan files.</div>
+          )}
+
+          {groups.map((g) => {
+            const ai = g.created_by === "a";
+            const color = groupColor(g.id);
+            const open = expanded === g.id;
+            return (
+              <div key={g.id}>
+                <div className="bx-row" onClick={() => setExpanded(open ? null : g.id)}>
+                  <span className="bx-row-icon" style={{ color }}><Icon icon={Layers} size={16} /></span>
+                  <div className="bx-row-text">
+                    <div className="bx-row-title">{g.name}</div>
+                    <div className="bx-row-meta">
+                      {patternText(g)} · {g.files.length} file{g.files.length === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                  {ai ? (
+                    <span className="bx-badge ai" style={{ "--ai": color }} title="Found by reading your file names">AI</span>
+                  ) : (
+                    <span className="bx-badge">You</span>
+                  )}
+                  {ai && (
+                    <span
+                      className={`bx-link ${groupsFull ? "disabled" : ""}`}
+                      title={groupsFull ? "You are at your group limit" : "Turn this into one of your own groups"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePromoteGroup(g);
+                      }}
+                    >
+                      Make it mine
+                    </span>
+                  )}
+                  <span
+                    className="bx-link danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteGroup(g);
+                    }}
+                  >
+                    Delete
+                  </span>
+                </div>
+                {open && (
+                  <div className="bx-group-files">
+                    {g.files.length === 0 && <div className="bx-group-file">No files match any more.</div>}
+                    {g.files.map((f) => (
+                      <div key={f.id} className="bx-group-file">{f.filename}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="bx-line-form">
+            <select className="bx-select" value={gKind} onChange={(e) => setGKind(e.target.value)}>
+              {PATTERN_KINDS.map((k) => (
+                <option key={k.id} value={k.id}>{k.label}</option>
+              ))}
+            </select>
+            {gKind !== "tests" && (
+              <input
+                className="bx-input"
+                style={{ marginBottom: 8 }}
+                placeholder={kindInfo.placeholder}
+                value={gWord}
+                maxLength={20}
+                onChange={(e) => setGWord(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateGroup()}
+              />
+            )}
+            <input
+              className="bx-input"
+              placeholder="Name (optional, only for you)"
+              value={gName}
+              maxLength={gLimits?.max_name_chars || 60}
+              onChange={(e) => setGName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateGroup()}
+            />
+            <div className="bx-save-row" style={{ marginTop: 8 }}>
+              <button className="bx-btn primary" disabled={!canCreateGroup} onClick={handleCreateGroup}>
+                {gBusy ? "…" : "+ Add group"}
+              </button>
+              {groupsFull && <span className="bx-counter-inline">Group limit reached</span>}
+            </div>
+          </div>
+        </>
       )}
     </>
   );

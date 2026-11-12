@@ -408,6 +408,21 @@ export const promoteBoxLine = (boxId, lineId) =>
   boxRequest("POST", `/boxes/${boxId}/lines/${lineId}/promote`, null, "Could not make the line yours");
 export const rescanBoxLines = (boxId) =>
   boxRequest("POST", `/boxes/${boxId}/rescan`, null, "Could not scan the files");
+export const listBoxGroups = (boxId) =>
+  boxRequest("GET", `/boxes/${boxId}/groups`, null, "Could not load groups");
+export const createBoxGroup = (boxId, patternType, patternValue = "", name = "") =>
+  boxRequest(
+    "POST",
+    `/boxes/${boxId}/groups`,
+    { pattern_type: patternType, pattern_value: patternValue, name },
+    "Could not create group"
+  );
+export const deleteBoxGroup = (boxId, groupId) =>
+  boxRequest("DELETE", `/boxes/${boxId}/groups/${groupId}`, null, "Could not delete group");
+export const renameBoxGroup = (boxId, groupId, name) =>
+  boxRequest("PATCH", `/boxes/${boxId}/groups/${groupId}`, { name }, "Could not rename group");
+export const promoteBoxGroup = (boxId, groupId) =>
+  boxRequest("POST", `/boxes/${boxId}/groups/${groupId}/promote`, null, "Could not make the group yours");
 export async function uploadBoxFile(boxId, file) {
   const formData = new FormData();
   formData.append("file", file);

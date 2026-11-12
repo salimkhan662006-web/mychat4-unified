@@ -273,3 +273,7 @@
 
 /* IM-3a: info message in the graph page */
 .bx-graph-notice.info { color: #6BC98A; background: rgba(74, 222, 128, 0.08); border-color: rgba(74, 222, 128, 0.3); }
+
+/* IM-3b: groups */
+.bx-group-files { margin: -2px 0 8px 28px; padding: 6px 10px; border-left: 1px solid var(--edge); }
+.bx-group-file { font-family: var(--mono); font-size: 11px; color: #8A7570; padding: 2px 0; overflow-wrap: break-word; }
