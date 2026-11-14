@@ -1,13 +1,28 @@
 // Phone version of the graph: one file at a time and the files it connects to.
 // Tap a connected file to hop to it. Link / Unlink work with taps instead of drags.
 // AI lines (found by reading the files) carry an AI badge and a "Mine" button that turns them into yours.
+// Pattern groups (IM-3b) show as tappable chips: tap one to see its files, tap a file to hop to it.
+// A dashed chip border means the group was found by the AI.
 import { useState, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import { aiLinkType, AI_TYPE_COLORS, AI_TYPE_NAMES } from "./lineKinds";
+import { groupColor, patternText } from "./groupKinds";
 import Icon from "./Icon";
 
-export default function BoxNeighbours({ files, lines, onCreateLine, onDeleteLine, onPromoteLine, onRescan, scanning }) {
+export default function BoxNeighbours({
+  files,
+  lines,
+  groups = [],
+  onCreateLine,
+  onDeleteLine,
+  onPromoteLine,
+  onPromoteGroup,
+  onDeleteGroup,
+  onRescan,
+  scanning,
+}) {
   const [focusId, setFocusId] = useState(null);
+  const [openGroupId, setOpenGroupId] = useState(null);
 
   const degree = useMemo(() => {
     const d = {};
@@ -34,6 +49,28 @@ export default function BoxNeighbours({ files, lines, onCreateLine, onDeleteLine
   const others = files.filter((f) => f.id !== focus.id && !linkedIds.has(f.id));
   const aiLinked = linked.filter((x) => x.line.kind === "a").length;
 
+  // Groups: the ones this file belongs to first, then the rest.
+  const focusGroups = groups.filter((g) => (g.files || []).some((f) => f.id === focus.id));
+  const otherGroups = groups.filter((g) => !focusGroups.includes(g));
+  const openGroup = groups.find((g) => g.id === openGroupId) || null;
+  const knownIds = new Set(files.map((f) => f.id));
+
+  function chip(g) {
+    const ai = g.created_by === "a";
+    return (
+      <span
+        key={g.id}
+        className={`bx-gchip ${ai ? "ai" : ""} ${openGroupId === g.id ? "open" : ""}`}
+        style={{ "--gc": groupColor(g.id) }}
+        onClick={() => setOpenGroupId(openGroupId === g.id ? null : g.id)}
+      >
+        <span className="bx-gchip-dot" />
+        {g.name}
+        <span className="bx-row-meta">{(g.files || []).length}</span>
+      </span>
+    );
+  }
+
   return (
     <div className="bx-nb">
       {onRescan && (
@@ -57,6 +94,61 @@ export default function BoxNeighbours({ files, lines, onCreateLine, onDeleteLine
           {aiLinked > 0 ? ` · ${aiLinked} found by AI` : ""}
         </div>
       </div>
+
+      {focusGroups.length > 0 && (
+        <>
+          <div className="bx-section-label">In groups</div>
+          <div className="bx-gchips">{focusGroups.map(chip)}</div>
+        </>
+      )}
+      {otherGroups.length > 0 && (
+        <>
+          <div className="bx-section-label">{focusGroups.length > 0 ? "Other groups" : "Groups"}</div>
+          <div className="bx-gchips">{otherGroups.map(chip)}</div>
+        </>
+      )}
+
+      {openGroup && (
+        <div className="bx-gpanel" style={{ "--gc": groupColor(openGroup.id) }}>
+          <div className="bx-row-title">
+            {openGroup.name}{" "}
+            {openGroup.created_by === "a" ? (
+              <span className="bx-badge ai" style={{ "--ai": groupColor(openGroup.id) }}>AI</span>
+            ) : (
+              <span className="bx-badge">You</span>
+            )}
+          </div>
+          <div className="bx-row-meta" style={{ marginBottom: 8 }}>
+            {patternText(openGroup)} · {(openGroup.files || []).length} file{(openGroup.files || []).length === 1 ? "" : "s"}
+          </div>
+          {(openGroup.files || []).filter((f) => knownIds.has(f.id)).map((f) => (
+            <div key={f.id} className="bx-row" onClick={() => setFocusId(f.id)}>
+              <div className="bx-row-text">
+                <div className="bx-row-title">{f.filename}</div>
+              </div>
+              {f.id === focus.id && <span className="bx-badge">here</span>}
+              <Icon icon={ChevronRight} size={14} />
+            </div>
+          ))}
+          <div className="bx-save-row" style={{ marginTop: 8 }}>
+            {openGroup.created_by === "a" && onPromoteGroup && (
+              <button className="bx-btn primary small" onClick={() => onPromoteGroup(openGroup.id)}>Make it mine</button>
+            )}
+            {onDeleteGroup && (
+              <button
+                className="bx-btn danger small"
+                onClick={() => {
+                  onDeleteGroup(openGroup.id);
+                  setOpenGroupId(null);
+                }}
+              >
+                Delete group
+              </button>
+            )}
+            <button className="bx-btn ghost small" onClick={() => setOpenGroupId(null)}>Close</button>
+          </div>
+        </div>
+      )}
 
       <div className="bx-section-label">Connected to</div>
       {linked.length === 0 && <div className="bx-muted">Nothing yet. Link it to a file below.</div>}

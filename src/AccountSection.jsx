@@ -166,7 +166,13 @@ export default function AccountSection() {
                 reading the stored text of your files (imports, file names and shared names), with no AI
                 call, and they are not sent to the AI in chat unless you press Make it mine. Deleting an
                 AI line remembers that pair of file references so it does not come back; that memory is
-                removed with the file, the workforce, Reset data and Delete account.
+                removed with the file, the workforce, Reset data and Delete account. Groups collect files
+                whose names share a pattern (test files, the same first word, or the same extension). They
+                are found by the app reading file names, with no AI call, or created by you. A group is
+                stored as its pattern, a name and the references of its files. Group names are never sent
+                to the AI, and the AI does not follow groups in chat. Deleting an AI group remembers its
+                pattern so it does not come back. Groups and that memory are removed with the workforce,
+                Reset data and Delete account.
               </div>
             </div>
           </div>
@@ -213,7 +219,7 @@ export default function AccountSection() {
       <div className="acc-section danger">
         <div className="acc-section-title">Reset data</div>
         <div className="acc-danger-desc">
-          Permanently deletes all your conversations, messages, workforces, notes, files and lines, and detaches
+          Permanently deletes all your conversations, messages, workforces, notes, files, lines and groups, and detaches
           your usage history from your account. Your account and login stay
           intact — this just wipes the slate clean.
         </div>

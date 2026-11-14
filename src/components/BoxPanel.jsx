@@ -183,7 +183,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
 
   async function handleDeleteBox() {
     if (!detail) return;
-    if (!window.confirm(`Delete workforce "${detail.box.title}" and all its notes, files and lines? This can't be undone.`)) return;
+    if (!window.confirm(`Delete workforce "${detail.box.title}" and all its notes, files, lines and groups? This can't be undone.`)) return;
     try {
       await deleteBox(detail.box.id);
       onBoxDeleted(detail.box.id);
@@ -499,7 +499,7 @@ export default function BoxPanel({ open, onClose, activeBoxId, onUse, onOpenChat
 
                 <Card
                   title="Lines"
-                  sub="Connect files so the AI can follow the link"
+                  sub="Connect files, and see groups of files with similar names"
                   open={!!cards.lines}
                   onToggle={() => toggleCard("lines")}
                 >
