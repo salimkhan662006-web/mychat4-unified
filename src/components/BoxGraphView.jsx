@@ -14,12 +14,17 @@ import {
   deleteBoxLine,
   promoteBoxLine,
   rescanBoxLines,
+  listBoxGroups,
+  deleteBoxGroup,
+  promoteBoxGroup,
+  renameBoxGroup,
 } from "../api";
 
 export default function BoxGraphView({ boxId, title, onBack, onError }) {
   const isMobile = useIsMobile();
   const [files, setFiles] = useState([]);
   const [lines, setLines] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState({ text: "", info: false });
   const [scanning, setScanning] = useState(false);
@@ -27,11 +32,13 @@ export default function BoxGraphView({ boxId, title, onBack, onError }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([listBoxFiles(boxId), listBoxLines(boxId)])
-      .then(([f, l]) => {
+    // Groups are a bonus: if that call fails the graph still works.
+    Promise.all([listBoxFiles(boxId), listBoxLines(boxId), listBoxGroups(boxId).catch(() => null)])
+      .then(([f, l, g]) => {
         if (cancelled) return;
         setFiles(f.files || []);
         setLines(l.lines || []);
+        setGroups(g ? g.groups || [] : []);
       })
       .catch((err) => {
         if (!cancelled) onError(err.message);
@@ -87,6 +94,38 @@ export default function BoxGraphView({ boxId, title, onBack, onError }) {
     }
   }
 
+  function upsertGroup(g) {
+    setGroups((prev) => (prev.some((x) => x.id === g.id) ? prev.map((x) => (x.id === g.id ? g : x)) : [...prev, g]));
+  }
+
+  async function handleDeleteGroup(groupId) {
+    say("");
+    try {
+      await deleteBoxGroup(boxId, groupId);
+      setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    } catch (err) {
+      say(err.message);
+    }
+  }
+
+  async function handlePromoteGroup(groupId) {
+    say("");
+    try {
+      upsertGroup(await promoteBoxGroup(boxId, groupId));
+    } catch (err) {
+      say(err.message);
+    }
+  }
+
+  async function handleRenameGroup(groupId, name) {
+    say("");
+    try {
+      upsertGroup(await renameBoxGroup(boxId, groupId, name));
+    } catch (err) {
+      say(err.message);
+    }
+  }
+
   async function handleRescan() {
     if (scanning) return;
     say("");
@@ -96,8 +135,9 @@ export default function BoxGraphView({ boxId, title, onBack, onError }) {
       if (r.status === "busy") {
         say("A scan is already running. Try again in a moment.", true);
       } else {
-        const fresh = await listBoxLines(boxId);
+        const [fresh, freshGroups] = await Promise.all([listBoxLines(boxId), listBoxGroups(boxId).catch(() => null)]);
         setLines(fresh.lines || []);
+        if (freshGroups) setGroups(freshGroups.groups || []);
         say(
           r.added || r.removed || r.updated
             ? `AI lines: ${r.added || 0} added, ${r.removed || 0} removed.`
@@ -115,9 +155,13 @@ export default function BoxGraphView({ boxId, title, onBack, onError }) {
   const shared = {
     files,
     lines,
+    groups,
     onCreateLine: handleCreate,
     onDeleteLine: handleDelete,
     onPromoteLine: handlePromote,
+    onDeleteGroup: handleDeleteGroup,
+    onPromoteGroup: handlePromoteGroup,
+    onRenameGroup: handleRenameGroup,
     onRescan: handleRescan,
     scanning,
   };
