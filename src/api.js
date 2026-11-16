@@ -57,7 +57,7 @@ export async function sendMessage(history, newMessage, boxId = null, model = nul
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
-      history: formattedHistory,
+      history: formattedHistory.slice(-20), // the server only reads the last 20 anyway; keeps requests small
       message: newMessage,
       ...(boxId ? { box_id: boxId } : {}),
       ...(model && model !== "auto" ? { model } : {}),
