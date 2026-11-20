@@ -131,10 +131,21 @@ export default function AccountSection() {
               <div className="acc-transparency-desc">
                 A single number per day — how many requests you made — is kept so the
                 free daily limit can't be dodged by resetting your data. It contains no
-                message content and is deleted with your account.
+                message content and is deleted with your account. The server also keeps short per-minute request counts in its memory only, never in the database; they vanish when the server restarts.
               </div>
             </div>
           </div>
+        <div className="acc-transparency-row">
+          <span className="acc-transparency-icon"><Icon icon={Activity} size={18} /></span>
+          <div>
+            <div className="acc-transparency-label">Site visit statistics</div>
+            <div className="acc-transparency-desc">
+              This site uses Cloudflare Web Analytics to count page visits and measure how fast
+              pages load. It does not use cookies and does not follow you across other sites. It
+              never receives the text of your messages.
+            </div>
+          </div>
+        </div>
           <div className="acc-transparency-row">
             <span className="acc-transparency-icon"><Icon icon={KeyRound} size={18} /></span>
             <div>
